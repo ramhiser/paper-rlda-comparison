@@ -12,14 +12,16 @@ colon.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, al
 	folds <- leave.k.out(n, k)
 
 	error.rates <- laply(folds, function(fold) {
-		training <- colon.df[-fold,]
+		training.df <- colon.df[-fold,]
+		test.df <- colon.df[fold,]
 		if(variable.selection) {
-			variable.selection.t.test(training, alpha = alpha)
+			var.select.out <- variable.selection.t.test(training.df, alpha = alpha)
+			training.df <- var.select.out$subset.df
+			test.df <- colon.df[fold, -var.select.out$dropped.variables]
 		}
-		test.data <- colon.df[fold,]
-		classifier <- rlda(training, .method = rlda.method)
-		predicted.classes <- predict(classifier, test.data[,-1])$group
-		mean(test.data[,1] != predicted.classes)
+		classifier <- rlda(training.df, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.df[,-1])$group
+		mean(test.df[,1] != predicted.classes)
 	}, .progress = "text")
 	
 	data.frame(method = rlda.method, error = error.rates)
