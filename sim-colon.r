@@ -1,0 +1,74 @@
+# Colon Cancer Data Set from Alon et al. (1999)
+colon.df <- read.csv("data/colon-cancer.csv")
+
+# n is the number of observations
+# p is the feature dimension
+# We subtract 1 from the number of columns to correct for the column of labels.
+n <- nrow(colon.df)
+p <- ncol(colon.df) - 1
+
+# TODO: Need to use same folds for each classifier.
+colon.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01, parallel.flag = FALSE) {
+	folds <- leave.k.out(n, k)
+
+	error.rates <- laply(folds, function(fold) {
+		training <- colon.df[-fold,]
+		if(variable.selection) {
+			variable.selection.t.test(training, alpha = alpha)
+		}
+		test.data <- colon.df[fold,]
+		classifier <- rlda(training, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.data[,-1])$group
+		mean(test.data[,1] != predicted.classes)
+	}, .progress = "text")
+	
+	data.frame(method = rlda.method, error = error.rates)
+}
+
+# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
+k <- 10
+lda.results <- colon.error.rates("lda", k)
+nlda.results <- colon.error.rates("nlda", k)
+mlda.results <- colon.error.rates("mlda", k)
+mkhadri.results <- colon.error.rates("mkhadri", k)
+
+# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
+k <- 5
+lda.results <- colon.error.rates("lda", k)
+nlda.results <- colon.error.rates("nlda", k)
+mlda.results <- colon.error.rates("mlda", k)
+mkhadri.results <- colon.error.rates("mkhadri", k)
+
+# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
+k <- 1
+lda.results <- colon.error.rates("lda", k)
+nlda.results <- colon.error.rates("nlda", k)
+mlda.results <- colon.error.rates("mlda", k)
+mkhadri.results <- colon.error.rates("mkhadri", k)
+
+
+# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
+# with variable selection (t-test)
+k <- 10
+lda.results <- colon.error.rates("lda", k, variable.selection = TRUE)
+nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE)
+mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE)
+mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE)
+
+# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
+# with variable selection (t-test)
+k <- 5
+lda.results <- colon.error.rates("lda", k, variable.selection = TRUE)
+nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE)
+mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE)
+mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE)
+
+# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
+# with variable selection (t-test)
+k <- 1
+lda.results <- colon.error.rates("lda", k, variable.selection = TRUE)
+nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE)
+mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE)
+mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE)
+
+#save(experiment.results, file = paste("experiment-results-", experiment.num, ".RData", sep = ""))
