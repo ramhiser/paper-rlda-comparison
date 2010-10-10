@@ -18,7 +18,8 @@ source("variable-selection.r")
 
 # Temporarily we have to manually run the source code from the RLDA project.
 # We are using a rlda.dir because the directory on my Mac differs from the RLDA directory on the Baylor cluster.
-rlda.dir <- "~/Dropbox/R/rlda/R/"
+rlda.dir <- "~/rlda.git/"
+#rlda.dir <- "~/Dropbox/R/rlda/R/"
 source(paste(rlda.dir, "rlda.r", sep = ""))
 source(paste(rlda.dir, "mkhadri.r", sep = ""))
 source(paste(rlda.dir, "predict.r", sep = ""))
@@ -35,7 +36,7 @@ p <- ncol(colon.df) - 1
 
 # TODO: Need to use same folds for each classifier.
 colon.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01, parallel.flag = FALSE) {
-	folds <- leave.k.out(n, parallel.flag = parallel)
+	folds <- leave.k.out(n, k)
 	error.rates <- laply(folds, function(fold) {
 		training.df <- colon.df[-fold,]
 		test.df <- colon.df[fold,]
@@ -60,26 +61,26 @@ parallel <- TRUE
 # Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
 k <- 10
 lda.results <- colon.error.rates("lda", k, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", parallel.flag = parallel)
-mkhadri.results <- colon.error.rates("mkhadri", parallel.flag = parallel)
+nlda.results <- colon.error.rates("nlda", k, parallel.flag = parallel)
+mlda.results <- colon.error.rates("mlda", k, parallel.flag = parallel)
+mkhadri.results <- colon.error.rates("mkhadri", k, parallel.flag = parallel)
 
 save(lda.results, nlda.results, mlda.results, mkhadri.results, file = "colon-CV10.RData")
 # Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
 k <- 5
-lda.results <- colon.error.rates("lda", parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", parallel.flag = parallel)
-mkhadri.results <- colon.error.rates("mkhadri", parallel.flag = parallel)
+lda.results <- colon.error.rates("lda", k, parallel.flag = parallel)
+nlda.results <- colon.error.rates("nlda", k, parallel.flag = parallel)
+mlda.results <- colon.error.rates("mlda", k, parallel.flag = parallel)
+mkhadri.results <- colon.error.rates("mkhadri", k, parallel.flag = parallel)
 
 save(lda.results, nlda.results, mlda.results, mkhadri.results, file = "colon-CV5.RData")
 
 # Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
 k <- 1
-lda.results <- colon.error.rates("lda", parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", parallel.flag = parallel)
-mkhadri.results <- colon.error.rates("mkhadri", parallel.flag = parallel)
+lda.results <- colon.error.rates("lda", k, parallel.flag = parallel)
+nlda.results <- colon.error.rates("nlda", k, parallel.flag = parallel)
+mlda.results <- colon.error.rates("mlda", k, parallel.flag = parallel)
+mkhadri.results <- colon.error.rates("mkhadri", k, parallel.flag = parallel)
 
 save(lda.results, nlda.results, mlda.results, mkhadri.results, file = "colon-CV1.RData")
 
