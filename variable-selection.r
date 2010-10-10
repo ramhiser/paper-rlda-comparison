@@ -15,7 +15,8 @@ variable.selection.t.test <- function(df, alpha = 0.01) {
 	kept.variables <- which(var.select.pvals < alpha)
 	dropped.variables <- which(var.select.pvals >= alpha)
 	
-	# We include the first column, which contains the original labels, and the variables with p-val < alpha.
-	subset.df <- df[, c(1, kept.variables)]
-	list(subset.df = subset.df, kept.variables = kept.variables, dropped.variables = dropped.variables, p.vals = var.select.pvals)
+	names(kept.variables) <- NULL
+	names(dropped.variables) <- NULL
+	
+	list(kept.variables = kept.variables, dropped.variables = dropped.variables, p.vals = var.select.pvals)
 }
