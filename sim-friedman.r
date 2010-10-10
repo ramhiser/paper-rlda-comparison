@@ -33,13 +33,14 @@ friedman.error.rates <- function(N, p, rlda.method, num.replications, experiment
 	data.frame(N = N, p = p, method = rlda.method, error = error.rates)
 }
 
-friedman.sim <- function(experiment, rlda.method, num.replications, friedman.experiment.num) {
+friedman.sim <- function(experiment, rlda.method, num.replications, friedman.experiment.num, parallel.flag = FALSE) {
 	sim.results <- adply(experiment, 1, function(exper) {
 		friedman.error.rates(N = exper$N,
 				p = exper$p,
 				rlda.method = rlda.method,
 				num.replications = num.replications,
-				experiment.num = friedman.experiment.num
+				experiment.num = friedman.experiment.num,
+				parallel.flag = parallel.flag
 		)
 	})
 }
