@@ -3,6 +3,9 @@ library(corpcor) # for cov.shrink and inv.cov.shrink for MLDA
 library(plyr)
 library(MASS)
 
+source("leave-k-out.r")
+source("variable-selection.r")
+
 # Temporarily we have to manually run the source code from the RLDA project.
 # We are using a rlda.dir because the directory on my Mac differs from the RLDA directory on the Baylor cluster.
 rlda.dir <- "~/Dropbox/R/rlda/R/"
