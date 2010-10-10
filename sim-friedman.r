@@ -3,10 +3,15 @@ library(corpcor) # for cov.shrink and inv.cov.shrink for MLDA
 library(plyr)
 library(MASS)
 source("data-friedman.r")
-source("~/Dropbox/R/rlda/R/rlda.r")
-source("~/Dropbox/R/rlda/R/mkhadri.r")
-source("~/Dropbox/R/rlda/R/predict.r")
-source("~/Dropbox/R/rlda/R/summary.r")
+
+# Temporarily we have to manually run the source code from the RLDA project.
+# We are using a rlda.dir because the directory on my Mac differs from the RLDA directory on the Baylor cluster.
+rlda.dir <- "~/rlda.git/"
+#rlda.dir <- "~/Dropbox/R/rlda/R/"
+source(paste(rlda.dir, "rlda.r", sep = ""))
+source(paste(rlda.dir, "mkhadri.r", sep = ""))
+source(paste(rlda.dir, "predict.r", sep = ""))
+source(paste(rlda.dir, "summary.r", sep = ""))
 
 friedman.error.rates <- function(N, p, rlda.method, num.replications, experiment.num, parallel.flag = FALSE) {
 	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
@@ -25,7 +30,7 @@ friedman.error.rates <- function(N, p, rlda.method, num.replications, experiment
 		predicted.classes <- predict(classifier, test.data[,-1])$group
 		mean(test.data[,1] != predicted.classes)
 	}, .parallel = parallel.flag, .progress = "text")
-	data.frame(N = N, p = p, error = error.rates)
+	data.frame(N = N, p = p, method = rlda.method, error = error.rates)
 }
 
 friedman.sim <- function(experiment, rlda.method, num.replications, friedman.experiment.num) {
@@ -46,21 +51,22 @@ num.replications <- 100
 # p = dimension of feature space
 # test.size = number of replications of each experiment
 #sample.sizes <- c(25, 50, 100)
-#dim.features <- c(250, 500, 1000)
-#test.size <- 1000
-#experiment.num <- 3
+sample.sizes <- c(50)
+dim.features <- c(250, 500, 1000)
+test.size <- 100
 
-sample.sizes <- c(40)
-dim.features <- c(100)
-test.size <- 1000
-friedman.experiment.num <- 3
+friedman.experiment.num <- 4
+
+parallel.flag <- TRUE
 
 experiment <- expand.grid(sample.sizes, dim.features)
 names(experiment) <- c("N", "p")
 
-lda.results <- friedman.sim(experiment, "lda", num.replications, friedman.experiment.num)
-nlda.results <- friedman.sim(experiment, "nlda", num.replications, friedman.experiment.num)
-mlda.results <- friedman.sim(experiment, "mlda", num.replications, friedman.experiment.num)
-mkhadri.results <- friedman.sim(experiment, "mkhadri", num.replications, friedman.experiment.num)
+lda.results <- friedman.sim(experiment, "lda", num.replications, friedman.experiment.num, parallel.flag = parallel.flag)
+nlda.results <- friedman.sim(experiment, "nlda", num.replications, friedman.experiment.num, parallel.flag = parallel.flag)
+mlda.results <- friedman.sim(experiment, "mlda", num.replications, friedman.experiment.num, parallel.flag = parallel.flag)
+mkhadri.results <- friedman.sim(experiment, "mkhadri", num.replications, friedman.experiment.num, parallel.flag = parallel.flag)
 
-#save(experiment.results, file = paste("experiment-results-", experiment.num, ".RData", sep = ""))
+sim.results <- rbind(lda.results, nlda.results, mlda.results, mkhadri.results)
+
+save(sim.results, file = "rlda-friedman-sim4-results.RData", sep = ""))

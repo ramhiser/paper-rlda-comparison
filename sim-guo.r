@@ -3,10 +3,15 @@ library(corpcor) # for cov.shrink and inv.cov.shrink for MLDA
 library(plyr)
 library(MASS)
 source("data-guo.r")
-source("~/Dropbox/R/rlda/R/rlda.r")
-source("~/Dropbox/R/rlda/R/mkhadri.r")
-source("~/Dropbox/R/rlda/R/predict.r")
-source("~/Dropbox/R/rlda/R/summary.r")
+
+# Temporarily we have to manually run the source code from the RLDA project.
+# We are using a rlda.dir because the directory on my Mac differs from the RLDA directory on the Baylor cluster.
+rlda.dir <- "~/rlda.git/"
+#rlda.dir <- "~/Dropbox/R/rlda/R/"
+source(paste(rlda.dir, "rlda.r", sep = ""))
+source(paste(rlda.dir, "mkhadri.r", sep = ""))
+source(paste(rlda.dir, "predict.r", sep = ""))
+source(paste(rlda.dir, "summary.r", sep = ""))
 
 guo.error.rates <- function(N, p, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
 	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
@@ -25,7 +30,7 @@ guo.error.rates <- function(N, p, rlda.method, num.replications, rho, block.size
 		predicted.classes <- predict(classifier, test.data[,-1])$group
 		mean(test.data[,1] != predicted.classes)
 	}, .parallel = parallel.flag, .progress = "text")
-	data.frame(N = N, p = p, error = error.rates)
+	data.frame(N = N, p = p, method = rlda.method, error = error.rates)
 }
 
 guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
@@ -42,27 +47,29 @@ guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, 
 }
 
 # Number of Replications for each classifier
-num.replications <- 500
+num.replications <- 100
 
 # N = num of observations
 # p = dimension of feature space
 # test.size = number of replications of each experiment
-sample.sizes <- c(25, 50, 100)
+#sample.sizes <- c(25, 50, 100)
+sample.sizes <- c(50)
 dim.features <- c(250, 500, 1000)
-test.size <- 1000
+test.size <- 100
 
-#sample.sizes <- c(30)
-#dim.features <- c(6)
-#test.size <- 100
 rho = 0.9
 block.size = 50
+
+parallel.flag <- TRUE
 
 experiment <- expand.grid(sample.sizes, dim.features)
 names(experiment) <- c("N", "p")
 
-lda.results <- guo.sim(experiment, "lda", num.replications, rho = rho, block.size = block.size)
-nlda.results <- guo.sim(experiment, "nlda", num.replications, rho = rho, block.size = block.size)
-mlda.results <- guo.sim(experiment, "mlda", num.replications, rho = rho, block.size = block.size)
-mkhadri.results <- guo.sim(experiment, "mkhadri", num.replications, rho = rho, block.size = block.size)
+lda.results <- guo.sim(experiment, "lda", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
+nlda.results <- guo.sim(experiment, "nlda", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
+mlda.results <- guo.sim(experiment, "mlda", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
+mkhadri.results <- guo.sim(experiment, "mkhadri", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
 
-#save(experiment.results, file = paste("experiment-results-", experiment.num, ".RData", sep = ""))
+sim.results <- rbind(lda.results, nlda.results, mlda.results, mkhadri.results)
+
+save(sim.results, file = "rlda-guo-sim-results.RData", sep = ""))
