@@ -55,15 +55,14 @@ duin.sim <- function(experiment, rlda.method, num.replications, rho, block.size,
 }
 
 # Number of Replications for each classifier
-num.replications <- 100
+num.replications <- 1000
 
 # N = num of observations
 # p = dimension of feature space
 # test.size = number of replications of each experiment
-#sample.sizes <- c(25, 50, 100)
-sample.sizes <- c(50)
+sample.sizes <- c(25, 50, 100)
 dim.features <- c(250, 500, 1000)
-test.size <- 100
+test.size <- 1000
 
 parallel.flag <- TRUE
 
@@ -77,4 +76,4 @@ mkhadri.results <- duin.sim(experiment, "mkhadri", num.replications, parallel.fl
 
 sim.results <- rbind(lda.results, nlda.results, mlda.results, mkhadri.results)
 
-save(sim.results, file = "rlda-duin-sim-results.RData", sep = ""))
+save(sim.results, file = "rlda-duin-sim-results.RData", sep = "")
