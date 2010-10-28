@@ -1,27 +1,6 @@
-library(mvtnorm)
-library(corpcor) # for cov.shrink and inv.cov.shrink for MLDA
-library(plyr)
-library(MASS)
-source("data-guo.r")
-
-# For running parallel
-library(foreach)
-library(doMC)
-
-# Registers the "multicore" parallel backend with the "foreach" package.
-registerDoMC()
-
-# Returns the number of parallel execution workers assigned.
-getDoParWorkers()
-
-# Temporarily we have to manually run the source code from the RLDA project.
-# We are using a rlda.dir because the directory on my Mac differs from the RLDA directory on the Baylor cluster.
-rlda.dir <- "~/rlda.git/"
-#rlda.dir <- "~/Dropbox/R/rlda/R/"
-source(paste(rlda.dir, "rlda.r", sep = ""))
-source(paste(rlda.dir, "mkhadri.r", sep = ""))
-source(paste(rlda.dir, "predict.r", sep = ""))
-source(paste(rlda.dir, "summary.r", sep = ""))
+library(ProjectTemplate)
+run.locally <- TRUE
+load.project()
 
 guo.error.rates <- function(N, p, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
 	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
