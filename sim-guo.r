@@ -1,27 +1,6 @@
-library(mvtnorm)
-library(corpcor) # for cov.shrink and inv.cov.shrink for MLDA
-library(plyr)
-library(MASS)
-source("data-guo.r")
-
-# For running parallel
-library(foreach)
-library(doMC)
-
-# Registers the "multicore" parallel backend with the "foreach" package.
-registerDoMC()
-
-# Returns the number of parallel execution workers assigned.
-getDoParWorkers()
-
-# Temporarily we have to manually run the source code from the RLDA project.
-# We are using a rlda.dir because the directory on my Mac differs from the RLDA directory on the Baylor cluster.
-rlda.dir <- "~/rlda.git/"
-#rlda.dir <- "~/Dropbox/R/rlda/R/"
-source(paste(rlda.dir, "rlda.r", sep = ""))
-source(paste(rlda.dir, "mkhadri.r", sep = ""))
-source(paste(rlda.dir, "predict.r", sep = ""))
-source(paste(rlda.dir, "summary.r", sep = ""))
+library(ProjectTemplate)
+run.locally <- TRUE
+load.project()
 
 guo.error.rates <- function(N, p, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
 	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
@@ -57,13 +36,13 @@ guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, 
 }
 
 # Number of Replications for each classifier
-num.replications <- 1000
+num.replications <- 100
 
 # N = num of observations
 # p = dimension of feature space
 # test.size = number of replications of each experiment
-sample.sizes <- c(25, 50, 100)
-dim.features <- c(250, 500, 1000)
+sample.sizes <- c(25)
+dim.features <- c(250, 500)
 test.size <- 1000
 
 rho = 0.9
