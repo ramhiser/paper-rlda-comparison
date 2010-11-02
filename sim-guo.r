@@ -36,13 +36,13 @@ guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, 
 }
 
 # Number of Replications for each classifier
-num.replications <- 1000
+num.replications <- 100
 
 # N = num of observations
 # p = dimension of feature space
 # test.size = number of replications of each experiment
-sample.sizes <- c(25, 50, 100)
-dim.features <- c(250, 500, 1000)
+sample.sizes <- c(25)
+dim.features <- c(250, 500)
 test.size <- 1000
 
 rho = 0.9
