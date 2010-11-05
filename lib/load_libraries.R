@@ -2,14 +2,10 @@ library('testthat')
 library('yaml')
 library('foreign')
 
-#library('reshape')
 library('plyr')
 library('mvtnorm')
 library('corpcor') # for cov.shrink and inv.cov.shrink for MLDA
 library('MASS')
-#library('stringr')
-#library('ggplot2')
-#library('log4r')
 
 # For running parallel
 library('foreach')
@@ -48,8 +44,8 @@ if(run.locally) {
 	source("~/RameyPackagesR/data-simulated.git/R/data-guo.r")
 	
 	# Loads RLDA code
-	source("~/rlda.git/rlda.r")
-	source("~/rlda.git/mkhadri.r")
-	source("~/rlda.git/predict.r")
-	source("~/rlda.git/summary.r")
+	source("~/RameyPackagesR/rlda/rlda.r")
+	source("~/RameyPackagesR/rlda/mkhadri.r")
+	source("~/RameyPackagesR/rlda/predict.r")
+	source("~/RameyPackagesR/rlda/summary.r")
 }
