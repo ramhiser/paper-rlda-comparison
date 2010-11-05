@@ -207,3 +207,17 @@ khan.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alp
 	
 	data.frame(method = rlda.method, error = error.rates)
 }
+
+golub.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01) {
+	if(variable.selection) {
+		var.select.out <- variable.selection.anova(golub.train, alpha = alpha)
+		training.df <- golub.train[, c(1, var.select.out$kept.variables)]
+		test.df <- golub.test[, c(1, var.select.out$kept.variables)]
+	}
+	
+	classifier <- rlda(training.df, .method = rlda.method)
+	predicted.classes <- predict(classifier, test.df[,-1], pseudo.inv = TRUE)$group
+	error.rate <- mean(test.df[,1] != predicted.classes)
+	
+	data.frame(method = rlda.method, error = error.rate)
+}
