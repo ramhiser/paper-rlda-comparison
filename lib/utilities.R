@@ -84,6 +84,7 @@ guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, 
 
 # TODO: Need to use same folds for each classifier.
 colon.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01, parallel.flag = FALSE) {
+	n <- nrow(colon.cancer)
 	folds <- leave.k.out(n, k)
 	error.rates <- laply(folds, function(fold) {
 		training.df <- colon.cancer[-fold,]
