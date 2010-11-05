@@ -27,6 +27,27 @@ variable.selection.t.test <- function(df, alpha = 0.01) {
 	list(kept.variables = kept.variables, dropped.variables = dropped.variables, p.vals = var.select.pvals)
 }
 
+# For each variable in the data frame, we test the hypothesis that the means are
+# equal for each class and calculate the p-value.
+# The variables that yield p-values < alpha are kept.
+# The variables that yield p-values >= alpha are dropped.
+# Assumes the first column contains the class (population) labels.
+variable.selection.anova <- function(df, alpha = 0.01) {
+	var.select.pvals <- aaply(df[,-1], 2, 
+		function(col) {
+			aov.out <- aov(as.matrix(col) ~ df[,1])
+			p.val <- summary(aov.out)[[1]][,5][1]
+		})
+		
+	kept.variables <- which(var.select.pvals < alpha)
+	dropped.variables <- which(var.select.pvals >= alpha)
+	
+	names(kept.variables) <- NULL
+	names(dropped.variables) <- NULL
+	
+	list(kept.variables = kept.variables, dropped.variables = dropped.variables, p.vals = var.select.pvals)
+}
+
 # Returns a list of mutually exclusive folds utilizing leave-k-out crossvalidation.
 leave.k.out <- function(n, k = 1) {
 	obs <- seq_len(n)
@@ -80,27 +101,6 @@ guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, 
 				parallel.flag = parallel.flag
 		)
 	})
-}
-
-# TODO: Need to use same folds for each classifier.
-colon.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01, parallel.flag = FALSE) {
-	n <- nrow(colon.cancer)
-	folds <- leave.k.out(n, k)
-	error.rates <- laply(folds, function(fold) {
-		training.df <- colon.cancer[-fold,]
-		test.df <- colon.cancer[fold,]
-
-		if(variable.selection) {
-			var.select.out <- variable.selection.t.test(training.df, alpha = alpha)
-			training.df <- training.df[, c(1, var.select.out$kept.variables)]
-			test.df <- test.df[, c(1, var.select.out$kept.variables)]
-		}
-		classifier <- rlda(training.df, .method = rlda.method)
-		predicted.classes <- predict(classifier, test.df[,-1], pseudo.inv = TRUE)$group
-		mean(test.df[,1] != predicted.classes)
-	}, .progress = "text", .parallel = parallel.flag)
-	
-	data.frame(method = rlda.method, error = error.rates)
 }
 
 duin.error.rates <- function(N, p, rlda.method, num.replications, parallel.flag = FALSE) {
@@ -164,4 +164,46 @@ friedman.sim <- function(experiment, rlda.method, num.replications, friedman.exp
 				parallel.flag = parallel.flag
 		)
 	})
+}
+
+# TODO: Need to use same folds for each classifier.
+colon.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01, parallel.flag = FALSE) {
+	n <- nrow(colon.cancer)
+	folds <- leave.k.out(n, k)
+	error.rates <- laply(folds, function(fold) {
+		training.df <- colon.cancer[-fold,]
+		test.df <- colon.cancer[fold,]
+
+		if(variable.selection) {
+			var.select.out <- variable.selection.t.test(training.df, alpha = alpha)
+			training.df <- training.df[, c(1, var.select.out$kept.variables)]
+			test.df <- test.df[, c(1, var.select.out$kept.variables)]
+		}
+		classifier <- rlda(training.df, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.df[,-1], pseudo.inv = TRUE)$group
+		mean(test.df[,1] != predicted.classes)
+	}, .progress = "text", .parallel = parallel.flag)
+	
+	data.frame(method = rlda.method, error = error.rates)
+}
+
+# TODO: Need to use same folds for each classifier.
+khan.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01, parallel.flag = FALSE) {
+	n <- nrow(tibshirani.khan)
+	folds <- leave.k.out(n, k)
+	error.rates <- laply(folds, function(fold) {
+		training.df <- tibshirani.khan[-fold,]
+		test.df <- tibshirani.khan[fold,]
+
+		if(variable.selection) {
+			var.select.out <- variable.selection.anova(training.df, alpha = alpha)
+			training.df <- training.df[, c(1, var.select.out$kept.variables)]
+			test.df <- test.df[, c(1, var.select.out$kept.variables)]
+		}
+		classifier <- rlda(training.df, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.df[,-1], pseudo.inv = TRUE)$group
+		mean(test.df[,1] != predicted.classes)
+	}, .progress = "text", .parallel = parallel.flag)
+	
+	data.frame(method = rlda.method, error = error.rates)
 }
