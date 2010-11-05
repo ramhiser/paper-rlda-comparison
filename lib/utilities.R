@@ -5,3 +5,162 @@ clean.variable.name <- function(variable.name)
   variable.name <- gsub('\\s+', '.', variable.name, perl = TRUE)
   return(variable.name)
 }
+
+# For each variable in the data frame, we test the hypothesis that the means are
+# equal for each class and calculate the p-value.
+# The variables that yield p-values < alpha are kept.
+# The variables that yield p-values >= alpha are dropped.
+# Assumes the first column contains the class (population) labels.
+variable.selection.t.test <- function(df, alpha = 0.01) {
+	var.select.pvals <- aaply(df[,-1], 2, 
+		function(col) {
+			col.by.class <- split(col, df[,1])
+			p.val <- t.test(col.by.class[[1]], col.by.class[[2]])$p.value
+		})
+		
+	kept.variables <- which(var.select.pvals < alpha)
+	dropped.variables <- which(var.select.pvals >= alpha)
+	
+	names(kept.variables) <- NULL
+	names(dropped.variables) <- NULL
+	
+	list(kept.variables = kept.variables, dropped.variables = dropped.variables, p.vals = var.select.pvals)
+}
+
+# Returns a list of mutually exclusive folds utilizing leave-k-out crossvalidation.
+leave.k.out <- function(n, k = 1) {
+	obs <- seq_len(n)
+	folds <- list()
+	fold.i <- 1
+	
+	while(length(obs) > 0) {
+		fold <- numeric(0)
+		if(k > length(obs)) {
+			fold <- obs
+			obs <- numeric(0)
+		}
+		else {
+			fold <- sample(obs, k)
+			obs <- obs[-which(obs %in% fold)]
+		}
+		folds[[paste("fold", fold.i, sep = "")]] <- fold
+		fold.i <- fold.i + 1
+	}
+	folds
+}
+
+guo.error.rates <- function(N, p, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
+	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
+	
+	error.rates <- aaply(seq_len(num.replications), 1, function(rep) {
+		# For each simulation replication, we use a different seed to generate the
+		# random variates. We arbitrarily choose the training seed to be the current
+		# replication number and the test data seed to be the same with 1000 added to it.
+		training.seed <- rep
+		test.seed <- 1000 + rep
+
+		training <- guo.data(n1 = N/2, n2 = N/2, p = p, rho = rho, block.size = block.size, .seed = training.seed)
+		test.data <- guo.data(n1 = test.size/2, n2 = test.size/2, p = p, rho = rho, block.size = block.size, .seed = test.seed)
+
+		classifier <- rlda(training, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
+		mean(test.data[,1] != predicted.classes)
+	}, .parallel = parallel.flag, .progress = "text")
+	data.frame(N = N, p = p, method = rlda.method, error = error.rates)
+}
+
+guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
+	sim.results <- adply(experiment, 1, function(exper) {
+		guo.error.rates(N = exper$N,
+				p = exper$p,
+				rlda.method = rlda.method,
+				num.replications = num.replications,
+				rho = rho,
+				block.size = block.size,
+				parallel.flag = parallel.flag
+		)
+	})
+}
+
+# TODO: Need to use same folds for each classifier.
+colon.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01, parallel.flag = FALSE) {
+	folds <- leave.k.out(n, k)
+	error.rates <- laply(folds, function(fold) {
+		training.df <- colon.cancer[-fold,]
+		test.df <- colon.cancer[fold,]
+
+		if(variable.selection) {
+			var.select.out <- variable.selection.t.test(training.df, alpha = alpha)
+			training.df <- training.df[, c(1, var.select.out$kept.variables)]
+			test.df <- test.df[, c(1, var.select.out$kept.variables)]
+		}
+		classifier <- rlda(training.df, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.df[,-1], pseudo.inv = TRUE)$group
+		mean(test.df[,1] != predicted.classes)
+	}, .progress = "text", .parallel = parallel.flag)
+	
+	data.frame(method = rlda.method, error = error.rates)
+}
+
+duin.error.rates <- function(N, p, rlda.method, num.replications, parallel.flag = FALSE) {
+	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
+	
+	error.rates <- aaply(seq_len(num.replications), 1, function(rep) {
+		# For each simulation replication, we use a different seed to generate the
+		# random variates. We arbitrarily choose the training seed to be the current
+		# replication number and the test data seed to be the same with 1000 added to it.
+		training.seed <- rep
+		test.seed <- 1000 + rep
+
+		training <- duin.data(n1 = N/2, n2 = N/2, p = p, .seed = training.seed)
+		test.data <- duin.data(n1 = test.size/2, n2 = test.size/2, p = p, .seed = test.seed)
+
+		classifier <- rlda(training, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
+		mean(test.data[,1] != predicted.classes)
+	}, .parallel = parallel.flag, .progress = "text")
+	data.frame(N = N, p = p, method = rlda.method, error = error.rates)
+}
+
+duin.sim <- function(experiment, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
+	sim.results <- adply(experiment, 1, function(exper) {
+		duin.error.rates(N = exper$N,
+				p = exper$p,
+				rlda.method = rlda.method,
+				num.replications = num.replications,
+				parallel.flag = parallel.flag
+		)
+	})
+}
+
+friedman.error.rates <- function(N, p, rlda.method, num.replications, experiment.num, parallel.flag = FALSE) {
+	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
+	
+	error.rates <- aaply(seq_len(num.replications), 1, function(rep) {
+		# For each simulation replication, we use a different seed to generate the
+		# random variates. We arbitrarily choose the training seed to be the current
+		# replication number and the test data seed to be the same with 1000 added to it.
+		training.seed <- rep
+		test.seed <- 1000 + rep
+
+		training <- friedman.data(.n = N, .p = p, .experiment = experiment.num, .seed = training.seed)
+		test.data <- friedman.data(.n = test.size, .p = p, .experiment = experiment.num, .seed = test.seed)
+
+		classifier <- rlda(training, .method = rlda.method)
+		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
+		mean(test.data[,1] != predicted.classes)
+	}, .parallel = parallel.flag, .progress = "text")
+	data.frame(N = N, p = p, method = rlda.method, error = error.rates)
+}
+
+friedman.sim <- function(experiment, rlda.method, num.replications, friedman.experiment.num, parallel.flag = FALSE) {
+	sim.results <- adply(experiment, 1, function(exper) {
+		friedman.error.rates(N = exper$N,
+				p = exper$p,
+				rlda.method = rlda.method,
+				num.replications = num.replications,
+				experiment.num = friedman.experiment.num,
+				parallel.flag = parallel.flag
+		)
+	})
+}

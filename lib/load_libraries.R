@@ -48,7 +48,7 @@ if(run.locally) {
 	source("~/RameyPackagesR/data-simulated.git/R/data-guo.r")
 	
 	# Loads RLDA code
-	source("~/Dropbox/R/rlda/R/rlda.r")
+	source("~/rlda.git/rlda.r")
 	source("~/rlda.git/mkhadri.r")
 	source("~/rlda.git/predict.r")
 	source("~/rlda.git/summary.r")
