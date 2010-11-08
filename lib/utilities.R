@@ -77,11 +77,8 @@ guo.error.rates <- function(N, p, rlda.method, num.replications, rho, block.size
 		# For each simulation replication, we use a different seed to generate the
 		# random variates. We arbitrarily choose the training seed to be the current
 		# replication number and the test data seed to be the same with 1000 added to it.
-		training.seed <- rep
-		test.seed <- 1000 + rep
-
-		training <- guo.data(n1 = N/2, n2 = N/2, p = p, rho = rho, block.size = block.size, .seed = training.seed)
-		test.data <- guo.data(n1 = test.size/2, n2 = test.size/2, p = p, rho = rho, block.size = block.size, .seed = test.seed)
+		training <- guo.data(n1 = N/2, n2 = N/2, p = p, rho = rho, block.size = block.size, .seed = rep)
+		test.data <- guo.data(n1 = test.size/2, n2 = test.size/2, p = p, rho = rho, block.size = block.size, .seed = 1000 + rep)
 
 		classifier <- rlda(training, .method = rlda.method)
 		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
@@ -110,11 +107,8 @@ duin.error.rates <- function(N, p, rlda.method, num.replications, parallel.flag 
 		# For each simulation replication, we use a different seed to generate the
 		# random variates. We arbitrarily choose the training seed to be the current
 		# replication number and the test data seed to be the same with 1000 added to it.
-		training.seed <- rep
-		test.seed <- 1000 + rep
-
-		training <- duin.data(n1 = N/2, n2 = N/2, p = p, .seed = training.seed)
-		test.data <- duin.data(n1 = test.size/2, n2 = test.size/2, p = p, .seed = test.seed)
+		training <- duin.data(n1 = N/2, n2 = N/2, p = p, .seed = rep)
+		test.data <- duin.data(n1 = test.size/2, n2 = test.size/2, p = p, .seed = 1000 + rep)
 
 		classifier <- rlda(training, .method = rlda.method)
 		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
@@ -141,11 +135,8 @@ friedman.error.rates <- function(N, p, rlda.method, num.replications, experiment
 		# For each simulation replication, we use a different seed to generate the
 		# random variates. We arbitrarily choose the training seed to be the current
 		# replication number and the test data seed to be the same with 1000 added to it.
-		training.seed <- rep
-		test.seed <- 1000 + rep
-
-		training <- friedman.data(.n = N, .p = p, .experiment = experiment.num, .seed = training.seed)
-		test.data <- friedman.data(.n = test.size, .p = p, .experiment = experiment.num, .seed = test.seed)
+		training <- friedman.data(.n = N, .p = p, .experiment = experiment.num, .seed = rep)
+		test.data <- friedman.data(.n = test.size, .p = p, .experiment = experiment.num, .seed = 1000 + rep)
 
 		classifier <- rlda(training, .method = rlda.method)
 		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
