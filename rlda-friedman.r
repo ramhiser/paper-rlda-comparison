@@ -8,8 +8,8 @@ num.replications <- 200
 # N = num of observations
 # p = dimension of feature space
 # test.size = number of replications of each experiment
-sample.sizes <- c(20, 100, by = 20)
-dim.features <- c(50, 250, by = 50)
+sample.sizes <- seq(20, 100, by = 20)
+dim.features <- seq(50, 250, by = 50)
 test.size <- 500
 
 friedman.experiment.num <- 4

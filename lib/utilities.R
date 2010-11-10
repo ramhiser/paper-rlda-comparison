@@ -12,14 +12,19 @@ clean.variable.name <- function(variable.name)
 # The variables that yield p-values >= alpha are dropped.
 # Assumes the first column contains the class (population) labels.
 variable.selection.t.test <- function(df, alpha = 0.01) {
-	var.select.pvals <- aaply(df[,-1], 2, 
+	x <- as.matrix(df[,-1])
+	dimnames(x) <- NULL
+	var.select.pvals <- aaply(x, 2, 
 		function(col) {
 			col.by.class <- split(col, df[,1])
 			p.val <- t.test(col.by.class[[1]], col.by.class[[2]])$p.value
 		})
-		
-	kept.variables <- which(var.select.pvals < alpha)
-	dropped.variables <- which(var.select.pvals >= alpha)
+	
+	# We compute the column index of the variables that will be selected and dropped.
+	# NOTE: The first column contains the class labels, so we must correct for it
+	#	when we determine which variables have been kept and dropped.
+	kept.variables <- which(var.select.pvals < alpha) + 1
+	dropped.variables <- which(var.select.pvals >= alpha) + 1
 	
 	names(kept.variables) <- NULL
 	names(dropped.variables) <- NULL
@@ -33,14 +38,19 @@ variable.selection.t.test <- function(df, alpha = 0.01) {
 # The variables that yield p-values >= alpha are dropped.
 # Assumes the first column contains the class (population) labels.
 variable.selection.anova <- function(df, alpha = 0.01) {
-	var.select.pvals <- aaply(df[,-1], 2, 
+	x <- as.matrix(df[,-1])
+	dimnames(x) <- NULL
+	var.select.pvals <- aaply(x, 2, 
 		function(col) {
 			aov.out <- aov(as.matrix(col) ~ df[,1])
 			p.val <- summary(aov.out)[[1]][,5][1]
 		})
-		
-	kept.variables <- which(var.select.pvals < alpha)
-	dropped.variables <- which(var.select.pvals >= alpha)
+	
+	# We compute the column index of the variables that will be selected and dropped.
+	# NOTE: The first column contains the class labels, so we must correct for it
+	#	when we determine which variables have been kept and dropped.
+	kept.variables <- which(var.select.pvals < alpha) + 1
+	dropped.variables <- which(var.select.pvals >= alpha) + 1
 	
 	names(kept.variables) <- NULL
 	names(dropped.variables) <- NULL
@@ -200,6 +210,9 @@ khan.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alp
 }
 
 golub.error.rates <- function(rlda.method, k = 5, variable.selection = FALSE, alpha = 0.01) {
+	training.df <- golub.train
+	test.df <- golub.test
+	
 	if(variable.selection) {
 		var.select.out <- variable.selection.anova(golub.train, alpha = alpha)
 		training.df <- golub.train[, c(1, var.select.out$kept.variables)]
