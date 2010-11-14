@@ -35,13 +35,13 @@ if(run.locally) {
 
 } else {
 	# Loads Duin simulation configuration
-	source("~/RameyPackagesR/data-simulated.git/R/data-duin.r")
+	source("~/RameyPackagesR/data-simulated/R/data-duin.r")
 
 	# Loads Friedman simulation configuration
-	source("~/RameyPackagesR/data-simulated.git/R/data-friedman.r")
+	source("~/RameyPackagesR/data-simulated/R/data-friedman.r")
 
 	# Loads Guo simulation configuration
-	source("~/RameyPackagesR/data-simulated.git/R/data-guo.r")
+	source("~/RameyPackagesR/data-simulated/R/data-guo.r")
 	
 	# Loads RLDA code
 	source("~/RameyPackagesR/rlda/rlda.r")

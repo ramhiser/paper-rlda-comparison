@@ -138,15 +138,15 @@ duin.sim <- function(experiment, rlda.method, num.replications, rho, block.size,
 	})
 }
 
-friedman.error.rates <- function(N, p, rlda.method, num.replications, experiment.num, parallel.flag = FALSE) {
-	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
+friedman.error.rates <- function(n.k, p, rlda.method, num.replications, experiment.num, parallel.flag = FALSE) {
+	cat("n.k:", n.k, "\tp:", p, "\tMethod:", rlda.method, "\n")
 	
 	error.rates <- aaply(seq_len(num.replications), 1, function(rep) {
 		# For each simulation replication, we use a different seed to generate the
 		# random variates. We arbitrarily choose the training seed to be the current
 		# replication number and the test data seed to be the same with 1000 added to it.
-		training <- friedman.data(.n = N, .p = p, .experiment = experiment.num, .seed = rep)
-		test.data <- friedman.data(.n = test.size, .p = p, .experiment = experiment.num, .seed = 1000 + rep)
+		training <- friedman.data(n1 = n.k, n2 = n.k, n3 = n.k, p = p, experiment = experiment.num, seed = rep)
+		test.data <- friedman.data(n1 = test.size, n2 = test.size, n3 = test.size, p = p, experiment = experiment.num, seed = 1000 + rep)
 
 		classifier <- rlda(training, .method = rlda.method)
 		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
@@ -157,7 +157,7 @@ friedman.error.rates <- function(N, p, rlda.method, num.replications, experiment
 
 friedman.sim <- function(experiment, rlda.method, num.replications, friedman.experiment.num, parallel.flag = FALSE) {
 	sim.results <- adply(experiment, 1, function(exper) {
-		friedman.error.rates(N = exper$N,
+		friedman.error.rates(n.k = exper$n.k,
 				p = exper$p,
 				rlda.method = rlda.method,
 				num.replications = num.replications,
