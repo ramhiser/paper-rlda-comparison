@@ -1,11 +1,11 @@
 library(ProjectTemplate)
-run.locally <- TRUE
+run.locally <- FALSE
 load.project()
 
 # Number of Replications for each classifier
 num.replications <- 1000
 
-# N = num of observations
+# n.k = num of observations per class
 # p = dimension of feature space
 # test.size = number of replications of each experiment
 sample.sizes <- seq.int(5, 25, by = 5)

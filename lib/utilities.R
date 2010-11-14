@@ -110,26 +110,26 @@ guo.sim <- function(experiment, rlda.method, num.replications, rho, block.size, 
 	})
 }
 
-duin.error.rates <- function(N, p, rlda.method, num.replications, parallel.flag = FALSE) {
-	cat("N:", N, "\tp:", p, "\tMethod:", rlda.method, "\n")
+duin.error.rates <- function(n.k, p, rlda.method, num.replications, parallel.flag = FALSE) {
+	cat("n.k:", n.k, "\tp:", p, "\tMethod:", rlda.method, "\n")
 	
 	error.rates <- aaply(seq_len(num.replications), 1, function(rep) {
 		# For each simulation replication, we use a different seed to generate the
 		# random variates. We arbitrarily choose the training seed to be the current
 		# replication number and the test data seed to be the same with 1000 added to it.
-		training <- duin.data(n1 = N/2, n2 = N/2, p = p, .seed = rep)
-		test.data <- duin.data(n1 = test.size/2, n2 = test.size/2, p = p, .seed = 1000 + rep)
+		training <- duin.data(n1 = n.k, n2 = n.k, p = p, .seed = rep)
+		test.data <- duin.data(n1 = test.size, n2 = test.size, p = p, .seed = 1000 + rep)
 
 		classifier <- rlda(training, .method = rlda.method)
 		predicted.classes <- predict(classifier, test.data[,-1], pseudo.inv = TRUE)$group
 		mean(test.data[,1] != predicted.classes)
 	}, .parallel = parallel.flag, .progress = "text")
-	data.frame(N = N, p = p, method = rlda.method, error = error.rates)
+	data.frame(n.k = n.k, p = p, method = rlda.method, error = error.rates)
 }
 
 duin.sim <- function(experiment, rlda.method, num.replications, rho, block.size, parallel.flag = FALSE) {
 	sim.results <- adply(experiment, 1, function(exper) {
-		duin.error.rates(N = exper$N,
+		duin.error.rates(n.k = exper$n.k,
 				p = exper$p,
 				rlda.method = rlda.method,
 				num.replications = num.replications,

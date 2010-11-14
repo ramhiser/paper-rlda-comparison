@@ -3,19 +3,19 @@ run.locally <- FALSE
 load.project()
 
 # Number of Replications for each classifier
-num.replications <- 200
+num.replications <- 1000
 
-# N = num of observations
+# n.k = num of observations per class
 # p = dimension of feature space
 # test.size = number of replications of each experiment
-sample.sizes <- seq(20, 100, by = 20)
-dim.features <- seq(50, 250, by = 50)
+sample.sizes <- seq.int(5, 25, by = 5)
+dim.features <- 250
 test.size <- 500
 
 parallel.flag <- TRUE
 
 experiment <- expand.grid(sample.sizes, dim.features)
-names(experiment) <- c("N", "p")
+names(experiment) <- c("n.k", "p")
 
 lda.results <- duin.sim(experiment, "lda", num.replications, parallel.flag = parallel.flag)
 sim.results <- lda.results
