@@ -22,24 +22,24 @@ names(experiment) <- c("n.k", "p")
 
 lda.results <- guo.sim(experiment, "lda", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
 sim.results <- lda.results
-save(sim.results, file = "rlda-guo-sim-results.RData")
+save(sim.results, file = "rlda-guo-n5-50-sim-results.RData")
 
 nlda.results <- guo.sim(experiment, "nlda", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
 sim.results <- rbind(sim.results, nlda.results)
-save(sim.results, file = "rlda-guo-sim-results.RData")
+save(sim.results, file = "rlda-guo-n5-50-sim-results.RData")
 
 mlda.results <- guo.sim(experiment, "mlda", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
 sim.results <- rbind(sim.results, mlda.results)
-save(sim.results, file = "rlda-guo-sim-results.RData")
+save(sim.results, file = "rlda-guo-n5-50-sim-results.RData")
 
 grid.results <- guo.sim(experiment, "grid", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
 sim.results <- rbind(sim.results, grid.results)
-save(sim.results, file = "rlda-guo-sim-results.RData")
+save(sim.results, file = "rlda-guo-n5-50-sim-results.RData")
 
 mkhadri.results <- guo.sim(experiment, "mkhadri", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
 sim.results <- rbind(sim.results, mkhadri.results)
-save(sim.results, file = "rlda-guo-sim-results.RData")
+save(sim.results, file = "rlda-guo-n5-50-sim-results.RData")
 
 mkhadri.grid.results <- guo.sim(experiment, "mkhadri-grid", num.replications, rho = rho, block.size = block.size, parallel.flag = parallel.flag)
 sim.results <- rbind(sim.results, mkhadri.grid.results)
-save(sim.results, file = "rlda-guo-sim-results.RData")
+save(sim.results, file = "rlda-guo-n5-50-sim-results.RData")
