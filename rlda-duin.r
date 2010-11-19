@@ -8,8 +8,8 @@ num.replications <- 1000
 # n.k = num of observations per class
 # p = dimension of feature space
 # test.size = number of replications of each experiment
-sample.sizes <- seq.int(5, 25, by = 5)
-dim.features <- 250
+sample.sizes <- seq.int(5, 50, by = 5)
+dim.features <- seq.int(25, 100, by = 25)
 test.size <- 500
 
 parallel.flag <- TRUE
