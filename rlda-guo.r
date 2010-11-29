@@ -68,7 +68,7 @@ sample.sizes <- seq.int(10, 50, by = 10)
 dim.features <- seq.int(25, 250, by = 25)
 test.size <- 500
 
-rho <- 0.9
+autocorrelations <- 0.9
 block.size <- 25
 
 grid.size <- 11
