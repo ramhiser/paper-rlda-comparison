@@ -1,6 +1,6 @@
 library('ProjectTemplate')
 library('jointDiag')
-run.locally <- TRUE
+run.locally <- FALSE
 verbose <- FALSE
 parallel <- TRUE
 load.project()
