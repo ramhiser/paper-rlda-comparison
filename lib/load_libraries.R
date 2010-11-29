@@ -28,10 +28,13 @@ if(run.locally) {
 	source("~/Dropbox/R/data-sets/data-simulated/R/data-guo.r")
 	
 	# Loads RLDA code
-	source("~/Dropbox/R/rlda/R/rlda.r")
+	source("~/Dropbox/R/rlda/R/rlda-helper.r")
+	source("~/Dropbox/R/rlda/R/grid.r")
+	source("~/Dropbox/R/rlda/R/lda-pseudo.r")
+	source("~/Dropbox/R/rlda/R/mdeb.r")
 	source("~/Dropbox/R/rlda/R/mkhadri.r")
-	source("~/Dropbox/R/rlda/R/predict.r")
-	source("~/Dropbox/R/rlda/R/summary.r")
+	source("~/Dropbox/R/rlda/R/mlda.r")
+	source("~/Dropbox/R/rlda/R/nlda.r")
 
 } else {
 	# Loads Duin simulation configuration
@@ -44,8 +47,11 @@ if(run.locally) {
 	source("~/RameyPackagesR/data-simulated/R/data-guo.r")
 	
 	# Loads RLDA code
-	source("~/RameyPackagesR/rlda/rlda.r")
+	source("~/RameyPackagesR/rlda/rlda-helper.r")
+	source("~/RameyPackagesR/rlda/grid.r")
+	source("~/RameyPackagesR/rlda/lda-pseudo.r")
+	source("~/RameyPackagesR/rlda/mdeb.r")
 	source("~/RameyPackagesR/rlda/mkhadri.r")
-	source("~/RameyPackagesR/rlda/predict.r")
-	source("~/RameyPackagesR/rlda/summary.r")
+	source("~/RameyPackagesR/rlda/mlda.r")
+	source("~/RameyPackagesR/rlda/nlda.r")
 }
