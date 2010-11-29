@@ -73,7 +73,7 @@ block.size <- 25
 
 grid.size <- 11
 
-sim.configurations <- expand.grid(sample.sizes, feature.dimensions, autocorrelations)
+sim.configurations <- expand.grid(sample.sizes, dim.features, autocorrelations)
 names(sim.configurations) <- c("n.k", "p", "rho")
 
 sim.error.rates <- adply(sim.configurations, 1, function(sim.config) {
