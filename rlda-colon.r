@@ -2,7 +2,7 @@ library(ProjectTemplate)
 run.locally <- FALSE
 load.project()
 
-colon.error.rates <- function(k = 5, variable.selection = FALSE, alpha = 0.01, verbose = FALSE) {
+colon.error.rates <- function(k = 5, variable.selection = TRUE, alpha = 0.01, verbose = FALSE) {
 	n <- nrow(colon.cancer)
 	hold.out <- sample(seq_len(n), k)
 	
