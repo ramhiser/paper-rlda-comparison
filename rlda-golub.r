@@ -2,146 +2,81 @@ library(ProjectTemplate)
 run.locally <- FALSE
 load.project()
 
-set.seed(42)
+golub.df <- rbind(golub.train, golub.test)
 
-# Leave-10-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.01
-k <- 10
-lda.results <- golub.error.rates("lda", k, variable.selection = TRUE, alpha = 0.01)
-nlda.results <- golub.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.01)
-mlda.results <- golub.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.01)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV10-varselect-alpha-001.RData")
+golub.error.rates <- function(k = 5, variable.selection = TRUE, alpha = 0.01, verbose = FALSE) {
+	n <- nrow(golub.df)
+	hold.out <- sample(seq_len(n), k)
+	
+	train.df <- golub.df[-hold.out,]
+	test.df <- golub.df[hold.out,]
 
-# Leave-5-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test)
-k <- 5
-lda.results <- golub.error.rates("lda", k, variable.selection = TRUE, alpha = 0.01)
-nlda.results <- golub.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.01)
-mlda.results <- golub.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.01)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV5-varselect-alpha-001.RData")
+	if(variable.selection) {
+		var.select.out <- variable.selection.t.test(train.df, alpha = alpha)
+		train.df <- train.df[, c(1, var.select.out$kept.variables)]
+		test.df <- test.df[, c(1, var.select.out$kept.variables)]
+	}
+		
+	if(verbose) cat("Building classifiers\n")
+	mlda.out <- mlda(train.df)
+	nlda.out <- nlda(train.df)
+	lda.pseudo.out <- lda.pseudo(train.df)
+	mdeb.out <- mdeb(train.df)
+	mkhadri.out <- mkhadri(train.df)
+	rlda.grid.out <- rlda.grid(train.df)
+	if(verbose) cat("Building classifiers...done!\n")
 
-# Leave-1-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test)
-k <- 1
-lda.results <- golub.error.rates("lda", k, variable.selection = TRUE, alpha = 0.01)
-nlda.results <- golub.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.01)
-mlda.results <- golub.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.01)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV1-varselect-alpha-001.RData")
+	if(verbose) cat("Performing model selection\n")
+	mkhadri.out <- model.select.mkhadri(train.df, mkhadri.out)
+	rlda.grid.out <- model.select.rlda.grid(train.df, rlda.grid.out, grid.size = grid.size)
+	if(verbose) cat("Performing model selection...done!\n")
 
-# Leave-10-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 10
-lda.results <- golub.error.rates("lda", k, variable.selection = TRUE, alpha = 0.05)
-nlda.results <- golub.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.05)
-mlda.results <- golub.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.05)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV10-varselect-alpha-005.RData")
+	if(verbose) cat("Classifying validation data\n")
+	test.x <- as.matrix(test.df[,-1])
+	dimnames(test.x) <- NULL
 
-# Leave-5-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 5
-lda.results <- golub.error.rates("lda", k, variable.selection = TRUE, alpha = 0.05)
-nlda.results <- golub.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.05)
-mlda.results <- golub.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.05)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV5-varselect-alpha-005.RData")
+	predictions.mlda <- predict.mlda(mlda.out, test.x)
+	predictions.nlda <- predict.nlda(nlda.out, test.x)
+	predictions.lda.pseudo <- predict.lda.pseudo(lda.pseudo.out, test.x)
+	predictions.mdeb <- predict.mdeb(mdeb.out, test.x)
+	predictions.mkhadri <- predict.mkhadri(mkhadri.out, test.x)
+	predictions.rlda.grid <- predict.rlda.grid(rlda.grid.out, test.x)
+	if(verbose) cat("Classifying validation data...done!\n")
 
-# Leave-1-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 1
-lda.results <- golub.error.rates("lda", k, variable.selection = TRUE, alpha = 0.05)
-nlda.results <- golub.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.05)
-mlda.results <- golub.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.05)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV1-varselect-alpha-005.RData")
+	error.rate.mlda <- mean(test.df$labels != predictions.mlda)
+	error.rate.nlda <- mean(test.df$labels != predictions.nlda)
+	error.rate.lda.pseudo <- mean(test.df$labels != predictions.lda.pseudo)
+	error.rate.mdeb <- mean(test.df$labels != predictions.mdeb)
+	error.rate.mkhadri <- mean(test.df$labels != predictions.mkhadri)
+	error.rate.rlda.grid <- mean(test.df$labels != predictions.rlda.grid)
 
-# Leave-10-Out Crossvalidation Error Rates for Golub Cancer Data Set
-k <- 10
-lda.results <- golub.error.rates("lda", k)
-nlda.results <- golub.error.rates("nlda", k)
-mlda.results <- golub.error.rates("mlda", k)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV10.RData")
+	if(verbose) cat("MLDA Error Rate:", error.rate.mlda, "\n")
+	if(verbose) cat("NLDA Error Rate:", error.rate.nlda, "\n")
+	if(verbose) cat("LDA (Pseudo) Error Rate:", error.rate.lda.pseudo, "\n")
+	if(verbose) cat("MDEB Error Rate:", error.rate.mdeb, "\n")
+	if(verbose) cat("Mkhadri Error Rate:", error.rate.mkhadri, "\n")
+	if(verbose) cat("Grid Error Rate:", error.rate.rlda.grid, "\n")
+	
+	c(error.rate.mlda, error.rate.nlda, error.rate.lda.pseudo, error.rate.mdeb, error.rate.mkhadri, error.rate.rlda.grid, k, alpha)	
+}
 
-# Leave-5-Out Crossvalidation Error Rates for Golub Cancer Data Set
-k <- 5
-lda.results <- golub.error.rates("lda", k)
-nlda.results <- golub.error.rates("nlda", k)
-mlda.results <- golub.error.rates("mlda", k)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV5.RData")
+set.seed(13)
 
-# Leave-1-Out Crossvalidation Error Rates for Golub Cancer Data Set
-k <- 1
-lda.results <- golub.error.rates("lda", k)
-nlda.results <- golub.error.rates("nlda", k)
-mlda.results <- golub.error.rates("mlda", k)
-save(lda.results, nlda.results, mlda.results, file = "golub-CV1.RData")
+grid.size <- 11
+num.iterations <- 1000
 
-#
-# Mkhadri Simulations (with and without grids)
-#
+hold.out.sizes <- c(2, 3, 4, 5)
+alphas <- c(0.01, 0.05, 0.1)
 
-# Leave-10-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.01
-k <- 10
-mkhadri.results <- golub.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.01)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.01)
-load("golub-CV10-varselect-alpha-001.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV10-varselect-alpha-001.RData")
+sim.configurations <- expand.grid(hold.out.sizes, alphas)
+names(sim.configurations) <- c("k", "alpha")
 
-# Leave-5-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test)
-k <- 5
-mkhadri.results <- golub.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.01)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.01)
-load("golub-CV5-varselect-alpha-001.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV5-varselect-alpha-001.RData")
+sim.error.rates <- adply(sim.configurations, 1, function(sim.config) {
+	cat("Leaving Out:", sim.config$k, "\talpha:", sim.config$alpha, "\n")
+	error.rates <- replicate(num.iterations, golub.error.rates(k = sim.config$k, variable.selection = TRUE, alpha = sim.config$alpha, verbose = TRUE))
+	error.rates.df <- data.frame(t(error.rates))
+	names(error.rates.df) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "mkhadri", "rlda-grid", "hold-out", "alpha")
+	error.rates.df
+})
 
-# Leave-1-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test)
-k <- 1
-mkhadri.results <- golub.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.01)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.01)
-load("golub-CV1-varselect-alpha-001.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV1-varselect-alpha-001.RData")
-
-# Leave-10-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 10
-mkhadri.results <- golub.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.05)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.05)
-load("golub-CV10-varselect-alpha-005.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV10-varselect-alpha-005.RData")
-
-# Leave-5-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 5
-mkhadri.results <- golub.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.05)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.05)
-load("golub-CV5-varselect-alpha-005.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV5-varselect-alpha-005.RData")
-
-# Leave-1-Out Crossvalidation Error Rates for Golub Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 1
-mkhadri.results <- golub.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.05)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.05)
-load("golub-CV1-varselect-alpha-005.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV1-varselect-alpha-005.RData")
-
-# Leave-10-Out Crossvalidation Error Rates for Golub Cancer Data Set
-k <- 10
-mkhadri.results <- golub.error.rates("mkhadri", k)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k)
-load("golub-CV10.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV10.RData")
-
-# Leave-5-Out Crossvalidation Error Rates for Golub Cancer Data Set
-k <- 5
-mkhadri.results <- golub.error.rates("mkhadri", k)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k)
-load("golub-CV5.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV5.RData")
-
-# Leave-1-Out Crossvalidation Error Rates for Golub Cancer Data Set
-k <- 1
-mkhadri.results <- golub.error.rates("mkhadri", k)
-mkhadri.grid.results <- golub.error.rates("mkhadri-grid", k)
-load("golub-CV1.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "golub-CV1.RData")
+save(sim.error.rates, file = "rlda-golub-sim-results.RData")
