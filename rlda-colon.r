@@ -70,7 +70,7 @@ sim.configurations <- expand.grid(hold.out.sizes, alphas)
 names(sim.configurations) <- c("k", "alpha")
 
 sim.error.rates <- adply(sim.configurations, 1, function(sim.config) {
-	cat("Leaving Out:", sim.config$k, "\tp:", sim.config$alpha, "\n")
+	cat("Leaving Out:", sim.config$k, "\talpha:", sim.config$alpha, "\n")
 	error.rates <- replicate(num.iterations, colon.error.rates(k = sim.config$k, variable.selection = TRUE, alpha = sim.config$alpha, verbose = TRUE))
 	error.rates.df <- data.frame(t(error.rates))
 	names(error.rates.df) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "mkhadri", "rlda-grid", "hold-out", "alpha")
