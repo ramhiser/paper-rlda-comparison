@@ -1,171 +1,80 @@
 library(ProjectTemplate)
-run.locally <- TRUE
+run.locally <- FALSE
 load.project()
+
+colon.error.rates <- function(k = 5, variable.selection = FALSE, alpha = 0.01, verbose = FALSE) {
+	n <- nrow(colon.cancer)
+	hold.out <- sample(seq_len(n), k)
+	
+	train.df <- colon.cancer[-hold.out,]
+	test.df <- colon.cancer[hold.out,]
+
+	if(variable.selection) {
+		var.select.out <- variable.selection.t.test(train.df, alpha = alpha)
+		train.df <- train.df[, c(1, var.select.out$kept.variables)]
+		test.df <- test.df[, c(1, var.select.out$kept.variables)]
+	}
+		
+	if(verbose) cat("Building classifiers\n")
+	mlda.out <- mlda(train.df)
+	nlda.out <- nlda(train.df)
+	lda.pseudo.out <- lda.pseudo(train.df)
+	mdeb.out <- mdeb(train.df)
+	mkhadri.out <- mkhadri(train.df)
+	rlda.grid.out <- rlda.grid(train.df)
+	if(verbose) cat("Building classifiers...done!\n")
+
+	if(verbose) cat("Performing model selection\n")
+	mkhadri.out <- model.select.mkhadri(train.df, mkhadri.out)
+	rlda.grid.out <- model.select.rlda.grid(train.df, rlda.grid.out, grid.size = grid.size)
+	if(verbose) cat("Performing model selection...done!\n")
+
+	if(verbose) cat("Classifying validation data\n")
+	test.x <- as.matrix(test.df[,-1])
+	dimnames(test.x) <- NULL
+
+	predictions.mlda <- predict.mlda(mlda.out, test.x)
+	predictions.nlda <- predict.nlda(nlda.out, test.x)
+	predictions.lda.pseudo <- predict.lda.pseudo(lda.pseudo.out, test.x)
+	predictions.mdeb <- predict.mdeb(mdeb.out, test.x)
+	predictions.mkhadri <- predict.mkhadri(mkhadri.out, test.x)
+	predictions.rlda.grid <- predict.rlda.grid(rlda.grid.out, test.x)
+	if(verbose) cat("Classifying validation data...done!\n")
+
+	error.rate.mlda <- mean(test.df$labels != predictions.mlda)
+	error.rate.nlda <- mean(test.df$labels != predictions.nlda)
+	error.rate.lda.pseudo <- mean(test.df$labels != predictions.lda.pseudo)
+	error.rate.mdeb <- mean(test.df$labels != predictions.mdeb)
+	error.rate.mkhadri <- mean(test.df$labels != predictions.mkhadri)
+	error.rate.rlda.grid <- mean(test.df$labels != predictions.rlda.grid)
+
+	if(verbose) cat("MLDA Error Rate:", error.rate.mlda, "\n")
+	if(verbose) cat("NLDA Error Rate:", error.rate.nlda, "\n")
+	if(verbose) cat("LDA (Pseudo) Error Rate:", error.rate.lda.pseudo, "\n")
+	if(verbose) cat("MDEB Error Rate:", error.rate.mdeb, "\n")
+	if(verbose) cat("Mkhadri Error Rate:", error.rate.mkhadri, "\n")
+	if(verbose) cat("Grid Error Rate:", error.rate.rlda.grid, "\n")
+	
+	c(error.rate.mlda, error.rate.nlda, error.rate.lda.pseudo, error.rate.mdeb, error.rate.mkhadri, error.rate.rlda.grid, k, alpha)	
+}
 
 set.seed(42)
 
-parallel <- TRUE
+grid.size <- 11
+num.iterations <- 1000
 
-# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.01
-k <- 10
-cat("Leave-10-Out\tVariable Selection with alpha = 0.01\n")
-lda.results <- colon.error.rates("lda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV10-varselect-alpha-001.RData")
+hold.out.sizes <- c(2, 3, 4, 5)
+alphas <- c(0.01, 0.05, 0.1)
 
-# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test)
-k <- 5
-cat("Leave-5-Out\tVariable Selection with alpha = 0.01\n")
-lda.results <- colon.error.rates("lda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV5-varselect-alpha-001.RData")
+sim.configurations <- expand.grid(hold.out.sizes, alphas)
+names(sim.configurations) <- c("k", "alpha")
 
-# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test)
-k <- 1
-cat("Leave-1-Out\tVariable Selection with alpha = 0.01\n")
-lda.results <- colon.error.rates("lda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV1-varselect-alpha-001.RData")
+sim.error.rates <- adply(sim.configurations, 1, function(sim.config) {
+	cat("Leaving Out:", sim.config$k, "\tp:", sim.config$alpha, "\n")
+	error.rates <- replicate(num.iterations, colon.error.rates(k = sim.config$k, variable.selection = TRUE, alpha = sim.config$alpha, verbose = TRUE))
+	error.rates.df <- data.frame(t(error.rates))
+	names(error.rates.df) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "mkhadri", "rlda-grid", "hold-out", "alpha")
+	error.rates.df
+})
 
-# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 10
-cat("Leave-10-Out\tVariable Selection with alpha = 0.05\n")
-cat("Now it's time for LDA\n")
-lda.results <- colon.error.rates("lda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-cat("Now it's time for NLDA\n")
-nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-cat("Now it's time for MLDA\n")
-mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-cat("Done!\n")
-save(lda.results, nlda.results, mlda.results, file = "colon-CV10-varselect-alpha-005.RData")
-
-# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 5
-cat("Leave-5-Out\tVariable Selection with alpha = 0.05\n")
-lda.results <- colon.error.rates("lda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV5-varselect-alpha-005.RData")
-
-# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 1
-cat("Leave-1-Out\tVariable Selection with alpha = 0.05\n")
-lda.results <- colon.error.rates("lda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV1-varselect-alpha-005.RData")
-
-# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
-k <- 10
-cat("Leave-10-Out\tNo Variable Selection\n")
-lda.results <- colon.error.rates("lda", k, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV10.RData")
-
-# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
-k <- 5
-cat("Leave-5-Out\tNo Variable Selection\n")
-lda.results <- colon.error.rates("lda", k, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV5.RData")
-
-# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
-k <- 1
-cat("Leave-1-Out\tNo Variable Selection\n")
-lda.results <- colon.error.rates("lda", k, parallel.flag = parallel)
-nlda.results <- colon.error.rates("nlda", k, parallel.flag = parallel)
-mlda.results <- colon.error.rates("mlda", k, parallel.flag = parallel)
-save(lda.results, nlda.results, mlda.results, file = "colon-CV1.RData")
-
-#
-# Mkhadri Simulations (with and without grids)
-#
-
-# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.01
-k <- 10
-cat("Leave-10-Out\tVariable Selection with alpha = 0.01\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-load("colon-CV10-varselect-alpha-001.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV10-varselect-alpha-001.RData")
-
-# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test)
-k <- 5
-cat("Leave-5-Out\tVariable Selection with alpha = 0.01\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-load("colon-CV5-varselect-alpha-001.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV5-varselect-alpha-001.RData")
-
-# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test)
-k <- 1
-cat("Leave-1-Out\tVariable Selection with alpha = 0.01\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.01, parallel.flag = parallel)
-load("colon-CV1-varselect-alpha-001.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV1-varselect-alpha-001.RData")
-
-# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 10
-cat("Leave-10-Out\tVariable Selection with alpha = 0.05\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-load("colon-CV10-varselect-alpha-005.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV10-varselect-alpha-005.RData")
-
-# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 5
-cat("Leave-5-Out\tVariable Selection with alpha = 0.05\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-load("colon-CV5-varselect-alpha-005.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV5-varselect-alpha-005.RData")
-
-# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
-# with variable selection (t-test) and alpha = 0.05
-k <- 1
-cat("Leave-1-Out\tVariable Selection with alpha = 0.05\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, variable.selection = TRUE, alpha = 0.05, parallel.flag = parallel)
-load("colon-CV1-varselect-alpha-005.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV1-varselect-alpha-005.RData")
-
-# Leave-10-Out Crossvalidation Error Rates for Colon Cancer Data Set
-k <- 10
-cat("Leave-10-Out\tNo Variable Selection\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, parallel.flag = parallel)
-load("colon-CV10.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV10.RData")
-
-# Leave-5-Out Crossvalidation Error Rates for Colon Cancer Data Set
-k <- 5
-cat("Leave-5-Out\tNo Variable Selection\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, parallel.flag = parallel)
-load("colon-CV5.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV5.RData")
-
-# Leave-1-Out Crossvalidation Error Rates for Colon Cancer Data Set
-k <- 1
-cat("Leave-1-Out\tNo Variable Selection\t(Mkhadri)\n")
-mkhadri.results <- colon.error.rates("mkhadri", k, parallel.flag = parallel)
-mkhadri.grid.results <- colon.error.rates("mkhadri-grid", k, parallel.flag = parallel)
-load("colon-CV1.RData")
-save(lda.results, nlda.results, mlda.results, mkhadri.results, mkhadri.grid.results, file = "colon-CV1.RData")
+save(sim.error.rates, file = "rlda-colon-sim-results.RData")
