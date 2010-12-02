@@ -56,21 +56,32 @@ guo.sim <- function(n.k, test.size, p, blocksize, rho, training.seed, test.seed,
 	c(error.rate.mlda, error.rate.nlda, error.rate.lda.pseudo, error.rate.mdeb, error.rate.mkhadri, error.rate.rlda.grid)
 }
 
+if(run.locally) {
+	num.replications <- 10
 
-# Number of Replications for each simulated error rate
-num.replications <- 1000
+	sample.sizes <- c(10, 15)
+	dim.features <- c(10, 20)
+	test.size <- 100
+	
+	autocorrelations <- 0.9
+	block.size <- 10
+	
 
-# n.k = num of observations per class
-# p = dimension of feature space
-# test.size = number of replications of each experiment
-sample.sizes <- seq.int(10, 50, by = 10)
-dim.features <- seq.int(25, 250, by = 25)
-test.size <- 500
+	grid.size <- 11
+} else {
+	num.replications <- 1000
 
-autocorrelations <- 0.9
-block.size <- 25
+	sample.sizes <- seq.int(10, 50, by = 20)
+	#dim.features <- seq.int(25, 250, by = 25)
+	dim.features <- c(25, 50, 100, 150, 250)
 
-grid.size <- 11
+	test.size <- 500
+
+	autocorrelations <- 0.9
+	block.size <- 25
+
+	grid.size <- 11
+}
 
 sim.configurations <- expand.grid(sample.sizes, dim.features, autocorrelations)
 names(sim.configurations) <- c("n.k", "p", "rho")
