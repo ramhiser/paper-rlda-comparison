@@ -1,5 +1,5 @@
 library('ProjectTemplate')
-run.locally <- FALSE
+run.locally <- TRUE
 verbose <- FALSE
 parallel <- TRUE
 load.project()
@@ -56,17 +56,24 @@ duin.sim <- function(n.k, test.size, p, training.seed, test.seed, verbose = FALS
 	c(error.rate.mlda, error.rate.nlda, error.rate.lda.pseudo, error.rate.mdeb, error.rate.mkhadri, error.rate.rlda.grid)
 }
 
-# Number of Replications for each simulated error rate
-num.replications <- 1000
+if(run.locally) {
+	num.replications <- 10
 
-# n.k = num of observations per class
-# p = dimension of feature space
-# test.size = number of replications of each experiment
-sample.sizes <- seq.int(10, 50, by = 10)
-dim.features <- seq.int(25, 250, by = 25)
-test.size <- 500
+	sample.sizes <- c(10, 15)
+	dim.features <- c(25, 50)
+	test.size <- 100
 
-grid.size <- 11
+	grid.size <- 11
+} else {
+	num.replications <- 1000
+
+	sample.sizes <- seq.int(10, 50, by = 20)
+	#dim.features <- seq.int(25, 250, by = 25)
+	dim.features <- c(25, 50, 100, 150, 250)
+	test.size <- 500
+
+	grid.size <- 11
+}
 
 sim.configurations <- expand.grid(sample.sizes, dim.features)
 names(sim.configurations) <- c("n.k", "p")
