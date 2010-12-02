@@ -1,5 +1,5 @@
 library('ProjectTemplate')
-run.locally <- TRUE
+run.locally <- FALSE
 verbose <- FALSE
 parallel <- TRUE
 load.project()
