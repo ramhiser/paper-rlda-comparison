@@ -62,11 +62,21 @@ golub.error.rates <- function(k = 5, variable.selection = TRUE, alpha = 0.01, ve
 
 set.seed(13)
 
-grid.size <- 11
-num.iterations <- 1000
+if(run.locally) {
+	num.iterations <- 10
 
-hold.out.sizes <- c(2, 3, 4, 5)
-alphas <- c(0.01, 0.05, 0.1)
+	hold.out.sizes <- c(2)
+	alphas <- c(0.1)
+	
+	grid.size <- 11
+} else {
+	num.iterations <- 1000
+
+	hold.out.sizes <- c(2, 3, 4, 5)
+	alphas <- c(0.05, 0.1)
+	
+	grid.size <- 11
+}
 
 sim.configurations <- expand.grid(hold.out.sizes, alphas)
 names(sim.configurations) <- c("k", "alpha")
