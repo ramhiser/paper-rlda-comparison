@@ -65,11 +65,11 @@ if(run.locally) {
 
 	grid.size <- 11
 } else {
-	num.replications <- 1000
+	num.replications <- 250
 
-	sample.sizes <- seq.int(10, 50, by = 20)
+	sample.sizes <- seq.int(10, 30, by = 20)
 	#dim.features <- seq.int(25, 250, by = 25)
-	dim.features <- c(25, 50, 100, 150, 250)
+	dim.features <- c(25, 50, 100, 150)
 	test.size <- 500
 
 	grid.size <- 11
