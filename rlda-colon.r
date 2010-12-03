@@ -1,5 +1,7 @@
 library(ProjectTemplate)
 run.locally <- FALSE
+parallel <- TRUE
+verbose <- FALSE
 load.project()
 
 colon.error.rates <- function(k = 5, variable.selection = TRUE, alpha = 0.01, verbose = FALSE) {
@@ -8,12 +10,16 @@ colon.error.rates <- function(k = 5, variable.selection = TRUE, alpha = 0.01, ve
 	
 	train.df <- colon.cancer[-hold.out,]
 	test.df <- colon.cancer[hold.out,]
+	
+	if(verbose) cat("Dimension of data before variable selection:", ncol(train.df) - 1, "\n")
 
 	if(variable.selection) {
 		var.select.out <- variable.selection.t.test(train.df, alpha = alpha)
 		train.df <- train.df[, c(1, var.select.out$kept.variables)]
 		test.df <- test.df[, c(1, var.select.out$kept.variables)]
 	}
+	
+	if(verbose) cat("Dimension of data after variable selection:", ncol(train.df) - 1, "\n")
 		
 	if(verbose) cat("Building classifiers\n")
 	mlda.out <- mlda(train.df)
@@ -28,6 +34,10 @@ colon.error.rates <- function(k = 5, variable.selection = TRUE, alpha = 0.01, ve
 	mkhadri.out <- model.select.mkhadri(train.df, mkhadri.out)
 	rlda.grid.out <- model.select.rlda.grid(train.df, rlda.grid.out, grid.size = grid.size)
 	if(verbose) cat("Performing model selection...done!\n")
+	
+	cat("a:", mkhadri.out$a, "\n")
+	cat("b:", mkhadri.out$b, "\n")
+	cat("gamma:", mkhadri.out$gamma, "\n")
 
 	if(verbose) cat("Classifying validation data\n")
 	test.x <- as.matrix(test.df[,-1])
@@ -60,16 +70,25 @@ colon.error.rates <- function(k = 5, variable.selection = TRUE, alpha = 0.01, ve
 
 set.seed(42)
 
-grid.size <- 11
-num.iterations <- 1000
+if(run.locally) {
+	num.iterations <- 2
 
-hold.out.sizes <- c(2, 3, 4, 5)
-alphas <- c(0.01, 0.05, 0.1)
+	hold.out.sizes <- 5
+	alphas <- 1e-4
+	
+	grid.size <- 2
+} else {
+	num.iterations <- 250
 
+	hold.out.sizes <- c(3, 5)
+	alphas <- 0.01
+	
+	grid.size <- 11
+}
 sim.configurations <- expand.grid(hold.out.sizes, alphas)
 names(sim.configurations) <- c("k", "alpha")
 
-sim.error.rates <- adply(sim.configurations, 1, function(sim.config) {
+sim.error.rates <- ddply(sim.configurations, 1, function(sim.config) {
 	cat("Leaving Out:", sim.config$k, "\talpha:", sim.config$alpha, "\n")
 	error.rates <- replicate(num.iterations, colon.error.rates(k = sim.config$k, variable.selection = TRUE, alpha = sim.config$alpha, verbose = TRUE))
 	error.rates.df <- data.frame(t(error.rates))
