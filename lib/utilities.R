@@ -32,30 +32,32 @@ variable.selection.t.test <- function(df, alpha = 0.01) {
 	list(kept.variables = kept.variables, dropped.variables = dropped.variables, p.vals = var.select.pvals)
 }
 
-# For each variable in the data frame, we test the hypothesis that the means are
-# equal for each class and calculate the p-value.
-# The variables that yield p-values < alpha are kept.
-# The variables that yield p-values >= alpha are dropped.
+# For each variable in the data frame, we calculate the F statistic with the hypothesis
+# that the means are equal for each class.
+# The q variables with largest values of the F statistic are kept.
+# The remaining p - qvariables are dropped.
 # Assumes the first column contains the class (population) labels.
-variable.selection.anova <- function(df, alpha = 0.01) {
+variable.selection.anova <- function(df, q = 30) {
 	x <- as.matrix(df[,-1])
 	dimnames(x) <- NULL
-	var.select.pvals <- aaply(x, 2, 
+	p <- ncol(x)
+	var.select.F.stats <- apply(x, 2, 
 		function(col) {
 			aov.out <- aov(as.matrix(col) ~ df[,1])
-			p.val <- summary(aov.out)[[1]][,5][1]
+			F.stat <- summary(aov.out)[[1]][["F value"]][1]
 		})
-	
+	F.stat.ranks <- rank(var.select.F.stats, ties.method = "random")
+
 	# We compute the column index of the variables that will be selected and dropped.
 	# NOTE: The first column contains the class labels, so we must correct for it
 	#	when we determine which variables have been kept and dropped.
-	kept.variables <- which(var.select.pvals < alpha) + 1
-	dropped.variables <- which(var.select.pvals >= alpha) + 1
+	kept.variables <- which(F.stat.ranks > p - q) + 1
+	dropped.variables <- which(F.stat.ranks <= p - q) + 1
 	
 	names(kept.variables) <- NULL
 	names(dropped.variables) <- NULL
 	
-	list(kept.variables = kept.variables, dropped.variables = dropped.variables, p.vals = var.select.pvals)
+	list(kept.variables = kept.variables, dropped.variables = dropped.variables, F.stats = var.select.F.stats)
 }
 
 # Returns a list of mutually exclusive folds utilizing leave-k-out crossvalidation.
