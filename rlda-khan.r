@@ -4,8 +4,9 @@ parallel <- TRUE
 verbose <- FALSE
 load.project()
 
-khan.error.rates <- function(k = 5, variable.selection = TRUE, q = 30, verbose = FALSE) {
-	n <- nrow(khan.cancer)
+khan.error.rates <- function(k = 5, variable.selection = TRUE, q = 30, verbose = FALSE, seed) {
+	set.seed(seed)
+	n <- nrow(tibshirani.khan)
 	hold.out <- sample(seq_len(n), k)
 	
 	train.df <- tibshirani.khan[-hold.out,]
@@ -35,10 +36,6 @@ khan.error.rates <- function(k = 5, variable.selection = TRUE, q = 30, verbose =
 	rlda.grid.out <- model.select.rlda.grid(train.df, rlda.grid.out, grid.size = grid.size)
 	if(verbose) cat("Performing model selection...done!\n")
 	
-	cat("a:", mkhadri.out$a, "\n")
-	cat("b:", mkhadri.out$b, "\n")
-	cat("gamma:", mkhadri.out$gamma, "\n")
-
 	if(verbose) cat("Classifying validation data\n")
 	test.x <- as.matrix(test.df[,-1])
 	dimnames(test.x) <- NULL
@@ -68,13 +65,11 @@ khan.error.rates <- function(k = 5, variable.selection = TRUE, q = 30, verbose =
 	c(error.rate.mlda, error.rate.nlda, error.rate.lda.pseudo, error.rate.mdeb, error.rate.mkhadri, error.rate.rlda.grid, k, q)	
 }
 
-set.seed(42)
-
 if(run.locally) {
-	num.iterations <- 2
+	num.iterations <- 4
 
-	hold.out.sizes <- 5
-	q <- c(100)
+	hold.out.sizes <- c(3, 5)
+	q <- c(30, 50)
 	
 	grid.size <- 2
 } else {
@@ -88,12 +83,14 @@ if(run.locally) {
 sim.configurations <- expand.grid(hold.out.sizes, q)
 names(sim.configurations) <- c("k", "q")
 
-sim.error.rates <- ddply(sim.configurations, 1, function(sim.config) {
+khan.error.rates <- ddply(sim.configurations, .(k, q), function(sim.config) {
 	cat("Leaving Out:", sim.config$k, "\tq:", sim.config$q, "\n")
-	error.rates <- replicate(num.iterations, khan.error.rates(k = sim.config$k, variable.selection = TRUE, q = sim.config$q, verbose = TRUE))
-	error.rates.df <- data.frame(t(error.rates))
+	error.rates <- laply(seq_len(num.iterations), function(i) {
+		khan.error.rates(k = sim.config$k, variable.selection = TRUE, q = sim.config$q, verbose = verbose, seed = i)
+	}, .parallel = parallel, .progress = "text")
+	error.rates.df <- data.frame(error.rates)
 	names(error.rates.df) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "mkhadri", "rlda-grid", "hold-out", "q")
 	error.rates.df
 })
 
-save(sim.error.rates, file = "rlda-khan-sim-results.RData")
+save(khan.error.rates, file = "rlda-khan-sim-results.RData")
