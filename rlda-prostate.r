@@ -75,7 +75,7 @@ if(run.locally) {
 	
 	prostate.df <- read.csv(bzfile("~/Dropbox/R/data-sets/data-microarray/data/singh-prostate/prostate.csv.bz2", "r"))
 } else {
-	num.iterations <- 10000
+	num.iterations <- 1000
 
 	hold.out.sizes <- c(3, 5)
 	q <- c(30, 50, 100)

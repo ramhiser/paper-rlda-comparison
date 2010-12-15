@@ -73,7 +73,7 @@ if(run.locally) {
 	
 	grid.size <- 2
 } else {
-	num.iterations <- 10000
+	num.iterations <- 1000
 
 	hold.out.sizes <- c(3, 5)
 	q <- c(30, 50, 100)

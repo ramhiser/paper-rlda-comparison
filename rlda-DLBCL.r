@@ -75,7 +75,7 @@ if(run.locally) {
 	
 	DLBCL.df <- read.csv(bzfile("~/Dropbox/R/data-sets/data-microarray/data/DLBCL-shipp/DLBCL.csv.bz2", "r"))
 } else {
-	num.iterations <- 10000
+	num.iterations <- 1000
 
 	hold.out.sizes <- c(3, 5)
 	q <- c(30, 50, 100)
