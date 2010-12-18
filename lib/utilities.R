@@ -15,7 +15,7 @@ clean.variable.name <- function(variable.name)
 #	r.options: The options used when R is called.
 #	sim.args: The simulation arguments that will be passed to the R file.
 #
-create.shell.file <- function(shell.file, r.file, output.file, r.options = "--no-save --slave", sim.args = NULL) {
+create.shell.file <- function(shell.file, r.file, output.file, r.options = "--no-save --slave", sim.args = NULL, chmod = TRUE, chmod.permissions = "750") {
 	args.string <- ''
 	if(!is.null(sim.args)) args.string <- paste('--args', sim.args)
 	r.command <- paste('R', r.options, args.string, '<', r.file, '>', output.file)
@@ -26,6 +26,12 @@ create.shell.file <- function(shell.file, r.file, output.file, r.options = "--no
 		cat(r.command, '\n')
 		cat('echo "R run completed at `date`"\n')
 	sink()
+	
+	# If the chmod flag is TRUE, then we will chmod the created file to have the appropriate chmod.permissions.
+	if(chmod) {
+		chmod.command <- paste("chmod", chmod.permissions, shell.file)
+		system(chmod.command)
+	}
 }
 
 # A function that queues a simulation shell file.
