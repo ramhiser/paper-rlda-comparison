@@ -1,8 +1,12 @@
+library('ProjectTemplate')
+load.project()
+run.locally <- FALSE
+
 # Kodiak arguments
 sim.type <- "rlda-duin"
 np <- 8
 npn <- 8
-verbose <- FALSE
+verbose <- TRUE
 cleanup <- FALSE
 
 # Simulation Configuration Design Points
