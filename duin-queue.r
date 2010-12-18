@@ -6,14 +6,14 @@ load.project()
 sim.type <- "rlda-duin"
 np <- 8
 npn <- 8
-verbose <- TRUE
-cleanup <- FALSE
+verbose <- FALSE
+cleanup <- TRUE
 
 # Simulation Configuration Design Points
 num.iterations <- 1000
 sample.sizes <- seq.int(5, 25, by = 5)
-dim.features <- 1000
-q <- 30
+dim.features <- c(1000, 2500)
+q <- c(30, 50, 100, 200)
 test.size <- 500
 grid.size <- 11
 
