@@ -6,6 +6,61 @@ clean.variable.name <- function(variable.name)
   return(variable.name)
 }
 
+# A function that creates a shell file that contains the script that will be called when a simulation is queued.
+#
+# Arguments:
+#	shell.file: The name of the shell file (usually ends in '.sh').
+#	r.file: The name of the R file that contains the actual R simulation.
+#	output.file: The name of the file where all output will be echoed.
+#	r.options: The options used when R is called.
+#	sim.args: The simulation arguments that will be passed to the R file.
+#
+create.shell.file <- function(shell.file, r.file, output.file, r.options = "--no-save --slave", sim.args = NULL) {
+	args.string <- ''
+	if(!is.null(sim.args)) args.string <- paste('--args', sim.args)
+	r.command <- paste('R', r.options, args.string, '<', r.file, '>', output.file)
+	sink(shell.file)
+		cat('#!/bin/bash\n')
+		cat('#PBS -S /bin/bash\n')
+		cat('echo "Starting R at `date`"\n')
+		cat(r.command, '\n')
+		cat('echo "R run completed at `date`"\n')
+	sink()
+}
+
+# A function that queues a simulation shell file.
+#
+# Arguments:
+#	sim.config.df: a dataframe that contains the current simulation configuration.
+#	sim.name: The name of the simulation. The queued sim will be prepended to the queue name.
+#	np: The number of processors to use for this simulation.
+#	npn: The number of processors to use per node for this simulation.
+#	email: The email address that will be notified upon completion or an error.
+#
+queue.sim <- function(sim.config.df, sim.type = "rlda-duin", np = 1, npn = 1, email = "johnramey@gmail.com", cleanup = FALSE, verbose = TRUE) {
+	sim.config <- paste(names(sim.config.df), sim.config.df, collapse = "-", sep = "")
+	sim.name <- paste(sim.type, "-", sim.config, sep = "")
+	shell.file <- paste(sim.name, ".sh", sep = "")
+	
+	if(verbose) cat("Creating shell file\n")
+	create.shell.file(shell.file, paste(sim.type, '.r', sep = ''), paste(sim.type, '.out', sep = ''))
+	if(verbose) cat("Creating shell file...done!\n")
+	
+	# Example
+	# scasub -np 8  -npn 8 -N "rlda-prostate" -m "johnramey@gmail.com" ./rlda-prostate.sh
+	if(verbose) cat("Queueing simulation\n")
+	queue.command <- paste("scasub -np ", np, " -npn ", npn, " '", sim.name, "' -m '", email, "' ./", shell.file, sep = "")
+	if(verbose) cat("Queue command:\t", queue.command, "\n")
+	#system(queue.command)
+	if(verbose) cat("Queueing simulation...done!\n")
+	
+	if(cleanup) {
+		if(verbose) cat("Cleaning up shell files\n")
+		file.remove(shell.file)
+		if(verbose) cat("Cleaning up shell files...done\n")
+	}
+}
+
 # For each variable in the data frame, we test the hypothesis that the means are
 # equal for each class and calculate the p-value.
 # The variables that yield p-values < alpha are kept.
