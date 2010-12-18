@@ -1,5 +1,5 @@
 library('ProjectTemplate')
-run.locally <- TRUE
+run.locally <- FALSE
 verbose <- FALSE
 parallel <- TRUE
 load.project()
@@ -68,44 +68,46 @@ duin.sim <- function(n.k, test.size, p, variable.selection = TRUE, q, data.seed,
 }
 
 if(run.locally) {
-	num.iterations <- 1000
+	num.iterations <- 10
 
-	sample.sizes <- seq.int(5, 25, by = 5)
-	dim.features <- 1000
-	q <- 30
-	test.size <- 500
-
-	grid.size <- 11
+	n.k <- 10
+	p <- 10
+	q <- 5
+	grid.size <- 5
+	test.size <- 50
 } else {
-	num.iterations <- 250
+	# R --no-restore --no-save --args 5 10 5 3 0.9 0.01 < sim-guo.r > sim-guo.out 2>&1
+	commandline.args <- commandArgs(trailingOnly = TRUE)
+	cat("n: p: q: grid.size: test.size: num.iterations:\n")
+	print(commandline.args)
 
-	sample.sizes <- seq.int(10, 30, by = 20)
-	#dim.features <- seq.int(25, 250, by = 25)
-	dim.features <- c(25, 50, 100, 150)
-	q <- 50
-	test.size <- 500
-
-	grid.size <- 11
+	n.k <- as.integer(commandline.args[1])
+	p <- as.integer(commandline.args[2])
+	q <- as.integer(commandline.args[3])
+	grid.size <- as.integer(commandline.args[4])
+	test.size <- as.numeric(commandline.args[5])
+	num.iterations <- as.numeric(commandline.args[6])
 }
 
-sim.configurations <- expand.grid(sample.sizes, dim.features, q)
-names(sim.configurations) <- c("n.k", "p", "q")
+duin.error.rates <- laply(seq_len(num.iterations), function(i) {
+	duin.sim(n.k = n.k,
+		test.size = test.size,
+		p = p,
+		variable.selection = TRUE,
+		q = q,
+		data.seed = i,
+		verbose = verbose)
+}, .parallel = parallel, .progress = "text")
+duin.error.rates <- data.frame(duin.error.rates)
+names(duin.error.rates) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "rlda-grid")
+duin.error.rates <- cbind.data.frame(n.k = n.k, p = p, q = q, duin.error.rates)
 
+results.file <- "rlda-duin-sim-results.RData"
 
-duin.error.rates <- ddply(sim.configurations, .(n.k, p, q), function(sim.config) {
-	cat("n.k:", sim.config$n.k, "\tp:", sim.config$p, "\tq:", sim.config$q, "\n")
-	error.rates <- laply(seq_len(num.iterations), function(i) {
-		duin.sim(n.k = sim.config$n.k,
-			test.size = test.size,
-			p = sim.config$p,
-			variable.selection = TRUE,
-			q = sim.config$q,
-			data.seed = i,
-			verbose = verbose)
-	}, .parallel = parallel, .progress = "text")
-	error.rates.df <- data.frame(error.rates)
-	names(error.rates.df) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "rlda-grid")
-	error.rates.df
-})
+if(file.exists(results.file)) {
+	duin.error.rates.current <- duin.error.rates
+	load(results.file)
+	duin.error.rates <- rbind(duin.error.rates, duin.error.rates.current)
+}
 
-save(duin.error.rates, file = "rlda-duin-sim-results.RData")
+save(duin.error.rates, file = results.file)
