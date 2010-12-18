@@ -3,7 +3,7 @@ sim.type <- "rlda-duin"
 np <- 8
 npn <- 8
 verbose <- FALSE
-cleanup <- TRUE
+cleanup <- FALSE
 
 # Simulation Configuration Design Points
 num.iterations <- 1000

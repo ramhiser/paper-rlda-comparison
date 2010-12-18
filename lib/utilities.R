@@ -53,7 +53,7 @@ queue.sim <- function(sim.config.df, sim.type = "rlda-duin", np = 1, npn = 1, em
 	if(verbose) cat("Queueing simulation\n")
 	queue.command <- paste("scasub -np ", np, " -npn ", npn, " '", sim.name, "' -m '", email, "' ./", shell.file, sep = "")
 	if(verbose) cat("Queue command:\t", queue.command, "\n")
-	#system(queue.command)
+	system(queue.command)
 	if(verbose) cat("Queueing simulation...done!\n")
 	
 	if(cleanup) {
