@@ -1,7 +1,7 @@
 library('ProjectTemplate')
 run.locally <- TRUE
-verbose <- TRUE
-parallel <- FALSE
+verbose <- FALSE
+parallel <- TRUE
 load.project()
 
 guo.sim <- function(n.k, test.size, p, variable.selection = TRUE, q, blocksize, rho, data.seed, verbose = FALSE) {
@@ -71,39 +71,43 @@ if(run.locally) {
 
 	grid.size <- 11
 } else {
-	num.iterations <- 250
+	# R --no-restore --no-save --args 5 10 5 3 0.9 0.01 < sim-guo.r > sim-guo.out 2>&1
+	commandline.args <- commandArgs(trailingOnly = TRUE)
+	cat("n: p: block.size: rho: q: grid.size: test.size: num.iterations:\n")
+	print(commandline.args)
 
-	sample.sizes <- seq.int(10, 30, by = 20)
-	#dim.features <- seq.int(25, 250, by = 25)
-	dim.features <- c(25, 50, 100, 150)
+	n.k <- as.integer(commandline.args[1])
+	p <- as.integer(commandline.args[2])
+	block.size <- as.integer(commandline.args[3])
+	rho <- as.integer(commandline.args[4])
+	q <- as.numeric(commandline.args[5])
+	grid.size <- as.numeric(commandline.args[6])
+	test.size <- as.numeric(commandline.args[7])
+	num.iterations <- as.numeric(commandline.args[8])
 
-	test.size <- 500
-
-	autocorrelations <- 0.9
-	block.size <- 25
-
-	grid.size <- 11
 }
 
-sim.configurations <- expand.grid(sample.sizes, dim.features, autocorrelations, q)
-names(sim.configurations) <- c("n.k", "p", "rho", "q")
+guo.error.rates <- laply(seq_len(num.iterations), function(i) {
+	guo.sim(n.k = n.k,
+		test.size = test.size,
+		p = p,
+		variable.selection = TRUE,
+		q = q,
+		blocksize = block.size,
+		rho = rho,
+		data.seed = i,
+		verbose = verbose)
+}, .parallel = parallel, .progress = "text")
+guo.error.rates <- data.frame(guo.error.rates)
+names(guo.error.rates) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "rlda-grid")
+guo.error.rates <- cbind.data.frame(n.k = n.k, p = p, q = q, guo.error.rates)
 
-guo.error.rates <- ddply(sim.configurations, .(n.k, p, rho, q), function(sim.config) {
-	cat("n.k:", sim.config$n.k, "\tp:", sim.config$p, "\trho:", sim.config$rho, "\tq:", sim.config$q, "\n")
-	error.rates <- laply(seq_len(num.iterations), function(i) {
-		guo.sim(n.k = sim.config$n.k,
-			test.size = test.size,
-			p = sim.config$p,
-			variable.selection = TRUE,
-			q = sim.config$q,
-			blocksize = block.size,
-			rho = sim.config$rho,
-			data.seed = i,
-			verbose = verbose)
-	}, .progress = "text", .parallel = parallel)
-	error.rates.df <- data.frame(error.rates)
-	names(error.rates.df) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "rlda-grid")
-	error.rates.df
-})
+results.file <- "rlda-guo-sim-results.RData"
 
-save(guo.error.rates, file = "rlda-guo-sim-results.RData")
+if(file.exists(results.file)) {
+	guo.error.rates.current <- guo.error.rates
+	load(results.file)
+	guo.error.rates <- rbind(guo.error.rates, guo.error.rates.current)
+}
+
+save(guo.error.rates, file = results.file)
