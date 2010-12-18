@@ -3,7 +3,7 @@ run.locally <- FALSE
 load.project()
 
 # Kodiak arguments
-sim.type <- "rlda-duin"
+sim.type <- "rlda-guo"
 np <- 8
 npn <- 8
 verbose <- FALSE
