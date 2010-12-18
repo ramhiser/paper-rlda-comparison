@@ -1,13 +1,23 @@
 library('ProjectTemplate')
-run.locally <- FALSE
-verbose <- FALSE
-parallel <- TRUE
+run.locally <- TRUE
+verbose <- TRUE
+parallel <- FALSE
 load.project()
 
-guo.sim <- function(n.k, test.size, p, blocksize, rho, training.seed, test.seed, verbose = FALSE) {
-	if(verbose) cat("Generating training data\n")
-	train.df <- guo.data(n1 = n.k, n2 = n.k, p = p, rho = rho, block.size = blocksize, .seed = training.seed)
-	if(verbose) cat("Generating training data...done!\n")
+guo.sim <- function(n.k, test.size, p, variable.selection = TRUE, q, blocksize, rho, data.seed, verbose = FALSE) {
+	if(verbose) cat("Generating training and test data\n")
+	generated.data.df <- guo.data(n1 = n.k + test.size, n2 = n.k + test.size, p = p, rho = rho, block.size = blocksize, .seed = data.seed)
+	if(verbose) cat("Generating training and test data...done!\n")
+	
+	# We are generating the training and test data at the same time.
+	# From the generated data, we will randomly choose a subset as the training data.
+	if(verbose) cat("Partitioning generated data into training and test data sets\n")
+	which.are.training <- sapply(levels(generated.data.df$labels), function(label) sample(which(generated.data.df$labels == label), n.k))
+	which.are.training <- as.vector(which.are.training)
+
+	train.df <- generated.data.df[which.are.training,]
+	test.df <- generated.data.df[-which.are.training,]
+	if(verbose) cat("Partitioning generated data into training and test data sets...done!\n")
 
 	if(verbose) cat("Building classifiers\n")
 	mlda.out <- mlda(train.df)
@@ -20,10 +30,6 @@ guo.sim <- function(n.k, test.size, p, blocksize, rho, training.seed, test.seed,
 	if(verbose) cat("Performing model selection\n")
 	rlda.grid.out <- model.select.rlda.grid(train.df, rlda.grid.out, grid.size = grid.size)
 	if(verbose) cat("Performing model selection...done!\n")
-
-	if(verbose) cat("Generating validation data\n")
-	test.df <- guo.data(n1 = test.size, n2 = test.size, p = p, rho = rho, block.size = blocksize, .seed = test.seed)
-	if(verbose) cat("Generating validation data...done!\n")
 
 	if(verbose) cat("Classifying validation data\n")
 	test.x <- as.matrix(test.df[,-1])
@@ -52,19 +58,20 @@ guo.sim <- function(n.k, test.size, p, blocksize, rho, training.seed, test.seed,
 }
 
 if(run.locally) {
-	num.replications <- 10
+	num.iterations <- 10
 
 	sample.sizes <- c(10, 15)
-	dim.features <- c(10, 20)
-	test.size <- 100
+	dim.features <- 25
+	test.size <- 10
 	
 	autocorrelations <- 0.9
-	block.size <- 10
+	block.size <- 25
 	
+	q <- 10
 
 	grid.size <- 11
 } else {
-	num.replications <- 250
+	num.iterations <- 250
 
 	sample.sizes <- seq.int(10, 30, by = 20)
 	#dim.features <- seq.int(25, 250, by = 25)
@@ -78,21 +85,25 @@ if(run.locally) {
 	grid.size <- 11
 }
 
-sim.configurations <- expand.grid(sample.sizes, dim.features, autocorrelations)
-names(sim.configurations) <- c("n.k", "p", "rho")
+sim.configurations <- expand.grid(sample.sizes, dim.features, autocorrelations, q)
+names(sim.configurations) <- c("n.k", "p", "rho", "q")
 
-sim.error.rates <- adply(sim.configurations, 1, function(sim.config) {
-	cat("n.k:", sim.config$n.k, "\tp:", sim.config$p, "\trho:", sim.config$rho, "\n")
-	error.rates <- laply(seq_len(num.replications), function(i) {
+guo.error.rates <- ddply(sim.configurations, .(n.k, p, rho, q), function(sim.config) {
+	cat("n.k:", sim.config$n.k, "\tp:", sim.config$p, "\trho:", sim.config$rho, "\tq:", sim.config$q, "\n")
+	error.rates <- laply(seq_len(num.iterations), function(i) {
 		guo.sim(n.k = sim.config$n.k,
 			test.size = test.size,
 			p = sim.config$p,
+			variable.selection = TRUE,
+			q = sim.config$q,
 			blocksize = block.size,
 			rho = sim.config$rho,
-			training.seed = i,
-			test.seed = 1000 + i)
+			data.seed = i,
+			verbose = verbose)
 	}, .progress = "text", .parallel = parallel)
-	data.frame(mlda = error.rates[,1], nlda = error.rates[,2], lda.pseudo = error.rates[,3], mdeb = error.rates[,4], rlda.grid = error.rates[,5])
+	error.rates.df <- data.frame(error.rates)
+	names(error.rates.df) <- c("mlda", "nlda", "lda-pseudo", "mdeb", "rlda-grid")
+	error.rates.df
 })
 
-save(sim.error.rates, file = "rlda-guo-sim-results.RData")
+save(guo.error.rates, file = "rlda-guo-sim-results.RData")
