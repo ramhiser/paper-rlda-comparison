@@ -51,7 +51,7 @@ queue.sim <- function(sim.config.df, sim.type = "rlda-duin", np = 1, npn = 1, em
 	# Example
 	# scasub -np 8  -npn 8 -N "rlda-prostate" -m "johnramey@gmail.com" ./rlda-prostate.sh
 	if(verbose) cat("Queueing simulation\n")
-	queue.command <- paste("scasub -np ", np, " -npn ", npn, " '", sim.name, "' -m '", email, "' ./", shell.file, sep = "")
+	queue.command <- paste("scasub -np ", np, " -npn ", npn, " -N '", sim.name, "' -m '", email, "' ./", shell.file, sep = "")
 	if(verbose) cat("Queue command:\t", queue.command, "\n")
 	system(queue.command)
 	if(verbose) cat("Queueing simulation...done!\n")

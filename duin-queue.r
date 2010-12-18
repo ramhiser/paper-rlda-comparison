@@ -1,6 +1,6 @@
 library('ProjectTemplate')
-load.project()
 run.locally <- FALSE
+load.project()
 
 # Kodiak arguments
 sim.type <- "rlda-duin"
