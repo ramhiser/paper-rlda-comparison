@@ -91,7 +91,7 @@ if(run.locally) {
 	q <- as.integer(commandline.args[3])
 	grid.size <- as.integer(commandline.args[4])
 	test.size <- as.integer(commandline.args[5])
-	num.iterations <- as.integers(commandline.args[6])
+	num.iterations <- as.integer(commandline.args[6])
 }
 
 duin.error.rates <- laply(seq_len(num.iterations), function(i) {
