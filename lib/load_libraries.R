@@ -51,7 +51,7 @@ if(run.locally) {
 	source("~/RameyPackagesR/rlda/grid.r")
 	source("~/RameyPackagesR/rlda/lda-pseudo.r")
 	source("~/RameyPackagesR/rlda/mdeb.r")
+	source("~/RameyPackagesR/rlda/mdeb-pool.r")
 	source("~/RameyPackagesR/rlda/mlda.r")
-	source("~/RameyPackagesR/rlda/mlda-pool.r")
 	source("~/RameyPackagesR/rlda/nlda.r")
 }
