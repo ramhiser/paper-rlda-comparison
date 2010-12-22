@@ -13,7 +13,7 @@ cleanup <- FALSE
 num.iterations <- 1000
 sample.sizes <- seq.int(5, 25, by = 5)
 dim.features <- c(1000, 2500)
-block.size <- c(25, 50)
+block.size <- 50
 rho <- 0.9
 q <- c(30, 50, 100)
 test.size <- 500
