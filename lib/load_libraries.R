@@ -32,6 +32,7 @@ if(run.locally) {
 	source("~/Dropbox/R/rlda/R/grid.r")
 	source("~/Dropbox/R/rlda/R/lda-pseudo.r")
 	source("~/Dropbox/R/rlda/R/mdeb.r")
+	source("~/Dropbox/R/rlda/R/mdeb-pool.r")
 	source("~/Dropbox/R/rlda/R/mlda.r")
 	source("~/Dropbox/R/rlda/R/nlda.r")
 
@@ -51,5 +52,6 @@ if(run.locally) {
 	source("~/RameyPackagesR/rlda/lda-pseudo.r")
 	source("~/RameyPackagesR/rlda/mdeb.r")
 	source("~/RameyPackagesR/rlda/mlda.r")
+	source("~/RameyPackagesR/rlda/mlda-pool.r")
 	source("~/RameyPackagesR/rlda/nlda.r")
 }
