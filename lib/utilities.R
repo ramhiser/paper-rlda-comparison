@@ -49,9 +49,20 @@ queue.sim <- function(sim.config.df, sim.type = "rlda-duin", np = 1, npn = 1, em
 	shell.file <- paste(sim.name, ".sh", sep = "")
 	r.file <- paste(sim.type, '.r', sep = '')
 	out.file <- paste(sim.name, '.out', sep = '')
+	sim.args <- paste(sim.config.df, collapse = " ")
+	
+	
+	if(verbose) {
+		cat("sim.config:", sim.config, "\n")
+		cat("sim.name:", sim.name, "\n")
+		cat("shell.file:", shell.file, "\n")
+		cat("r.file:", r.file, "\n")
+		cat("out.file:", out.file, "\n")
+		cat("sim.args:", sim.args, "\n")
+	}
 	
 	if(verbose) cat("Creating shell file\n")
-	create.shell.file(shell.file, r.file, out.file)
+	create.shell.file(shell.file, r.file, out.file, sim.args = sim.args)
 	if(verbose) cat("Creating shell file...done!\n")
 	
 	# Example
