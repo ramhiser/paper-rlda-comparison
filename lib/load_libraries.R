@@ -11,6 +11,9 @@ library('MASS')
 library('foreach')
 library('doMC')
 
+# For microarray data sets
+library('datamicroarray')
+
 # Registers the "multicore" parallel backend with the "foreach" package.
 registerDoMC()
 

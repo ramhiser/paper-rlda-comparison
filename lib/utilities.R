@@ -42,6 +42,8 @@ create.shell.file <- function(shell.file, r.file, output.file, r.options = "--no
 #	np: The number of processors to use for this simulation.
 #	npn: The number of processors to use per node for this simulation.
 #	email: The email address that will be notified upon completion or an error.
+#	cleanup: Delete all of the shell files after the simulations are queued?
+#	verbose: Echo the status of the current task?
 #
 queue.sim <- function(sim.config.df, sim.type = "rlda-duin", np = 1, npn = 1, email = "johnramey@gmail.com", cleanup = FALSE, verbose = TRUE) {
 	sim.config <- paste(names(sim.config.df), sim.config.df, collapse = "-", sep = "")
@@ -50,7 +52,6 @@ queue.sim <- function(sim.config.df, sim.type = "rlda-duin", np = 1, npn = 1, em
 	r.file <- paste(sim.type, '.r', sep = '')
 	out.file <- paste(sim.name, '.out', sep = '')
 	sim.args <- paste(sim.config.df, collapse = " ")
-	
 	
 	if(verbose) {
 		cat("sim.config:", sim.config, "\n")
