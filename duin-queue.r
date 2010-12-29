@@ -11,8 +11,8 @@ cleanup <- FALSE
 
 # Simulation Configuration Design Points
 num.iterations <- 1000
-sample.sizes <- seq.int(5, 25, by = 5)
-dim.features <- c(1000, 2500)
+sample.sizes <- seq.int(30, 50, by = 5)
+dim.features <- 1000
 q <- c(30, 50, 100)
 test.size <- 500
 grid.size <- 11
