@@ -18,6 +18,16 @@ guo.sim <- function(n.k, test.size, p, variable.selection = TRUE, q, blocksize, 
 	train.df <- generated.data.df[which.are.training,]
 	test.df <- generated.data.df[-which.are.training,]
 	if(verbose) cat("Partitioning generated data into training and test data sets...done!\n")
+	
+	if(verbose) cat("Dimension of data before variable selection:", ncol(train.df) - 1, "\n")
+
+	if(variable.selection) {
+		var.select.out <- variable.selection.anova(train.df, q = q)
+		train.df <- train.df[, c(1, var.select.out$kept.variables)]
+		test.df <- test.df[, c(1, var.select.out$kept.variables)]
+	}
+	
+	if(verbose) cat("Dimension of data after variable selection:", ncol(train.df) - 1, "\n")
 
 	if(verbose) cat("Building classifiers\n")
 	mlda.out <- mlda(train.df)
