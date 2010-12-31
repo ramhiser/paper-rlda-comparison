@@ -11,7 +11,7 @@ cleanup <- FALSE
 
 # Simulation Configuration Design Points
 num.iterations <- 1000
-sample.sizes <- seq.int(30, 50, by = 5)
+sample.sizes <- seq.int(5, 25, by = 5)
 dim.features <- 1000
 block.size <- 50
 rho <- 0.9
