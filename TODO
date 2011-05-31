@@ -1,9 +1,6 @@
 Rename rlda-sim as rlda-comparison on github
 From Kodiak, git pull and install the following:
   rlda-comparison
-  regdiscrim
-  data-microarray
-  data-simulated
 Run sims on Kodiak:
   Duin
   Guo
