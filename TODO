@@ -1,0 +1,11 @@
+Update microarray data package to use list(x, y) format
+Update microarray data files to use rlda_data() with foreach()
+  alon
+  chiaretti
+  gravier
+  shipp
+  singh
+
+Update paper on RDA section 3.2
+  Used grid of 0, 0.1, ..., 1.0
+  Don't use LOO. Use leave 5 out.
