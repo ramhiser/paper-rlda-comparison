@@ -1,15 +1,3 @@
-Rename rlda-sim as rlda-comparison on github
-From Kodiak, git pull and install the following:
-  rlda-comparison
-Run sims on Kodiak:
-  Duin
-  Guo
-Run data sims on Kodiak:
-  Alon
-  Chiaretti
-  Gravier
-  Shipp
-  Singh
 What results changed? Update their summaries
 Choose Figure 1 or 2
 Choose Figure 3 or 4
