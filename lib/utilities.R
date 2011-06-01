@@ -6,13 +6,13 @@ clean.variable.name <- function(variable.name)
   return(variable.name)
 }
 
-rlda_data <- function(x, y, q, hold_out = 5) {
+rlda_data <- function(x, y, q, training_pct = 0.8) {
   N <- nrow(x)
-  test <- sample(seq_len(N), hold_out)
-  train_x <- x[-test, ]
-  test_x <- x[test, ]
-  train_y <- y[-test]
-  test_y <- y[test]
+  train <- sample(seq_len(N), training_pct * N)
+  train_x <- x[train, ]
+  test_x <- x[-train, ]
+  train_y <- y[train]
+  test_y <- y[-train]
 
   # Perform variable selection with ANOVA
   var_select_out <- var_select_anova(x = train_x, y = train_y, q = q)
