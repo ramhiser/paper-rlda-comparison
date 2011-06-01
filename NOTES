@@ -1,0 +1,17 @@
+Because of the variability present in the repeated partition with hold out size
+of 5, I am going to increase this to a percentage of the total data. That is,
+for each random split of the data, 20% of the data will be used as test data.
+
+Since our goal is to determine superiority of classifiers for the considered
+data sets, this should not be a problem. A problem would occur if we considered
+these as accurate estimates for the true error rate.
+
+The Shipp data set may be a problem though. The data set has 77 observations: 58
+are from class A and 19 are from class B. But 20% of 77 is 15. Therefore, it is
+possible that there are only 4 observations left in class B for a random split.
+Although this is very unlikely, a more possible event is to have 5-6
+observations held out. This is problematic b/c we are training the RDA
+classifier with cross-validation and a hold-out size of 5.
+
+For now, we will proceed with this in mind while expecting a possible error in
+the simulation with the Shipp data set.
