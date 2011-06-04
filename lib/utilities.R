@@ -101,30 +101,9 @@ rlda_sim <- function(generate, n, p, q, test_size, ...) {
 
   # Build classifiers
   mlda_out <- mlda(x = train_x, y = train_y)
-  nlda_out <- nlda(x = train_x, y = train_y)
-  mdeb_out <- mdeb(x = train_x, y = train_y)
-  pseudo_out <- lda_pseudo(x = train_x, y = train_y)
-  rda_out <- rda(x = train_x, y = train_y)
-
-  # Find the optimal value of gamma in the RDA model
-  # The lambda parameter is fixed to be 1 because
-  # we are assuming equal covariance matrices.
-  hold_out <- 5
-  grid_size <- 11
-  grid <- rbind(1, seq(0, 1, length = grid_size))
-  grid_error <- foreach(j = grid, .combine=c) %do% {
-    rda_cv(x = train_x, y = train_y, lambda = j[1], gamma = j[2], k = hold_out)$error
-  }
-  grid  <- cbind.data.frame(t(grid), grid_error)
-  names(grid) <- c("lambda", "gamma", "error")
-  friedman_grid <- rda_friedman(training_error = grid)
 
   # Make predictions
   pred_mlda <- predict_mlda(mlda_out, test_x)
-  pred_nlda <- predict_nlda(nlda_out, test_x)
-  pred_mdeb <- predict_mdeb(mdeb_out, test_x)
-  pred_pseudo <- predict_lda_pseudo(pseudo_out, test_x)
-  pred_rda <- predict_rda(rda_out, test_x, friedman_grid$lambda, friedman_grid$gamma)
 
   list_mlda <- list(
     method = "MLDA",
@@ -132,37 +111,9 @@ rlda_sim <- function(generate, n, p, q, test_size, ...) {
     q = q,
     error = mean(pred_mlda$predicted != test_y)
   )
-  list_nlda <- list(
-    method = "NLDA",
-    n = n,
-    q = q,
-    error = mean(pred_nlda$predicted != test_y)
-  )
-  list_mdeb <- list(
-    method = "MDEB",
-    n = n,
-    q = q,
-    error = mean(pred_mdeb$predicted != test_y)
-  )
-  list_pseudo <- list(
-    method = "PFLD",
-    n = n,
-    q = q,
-    error = mean(pred_pseudo$predicted != test_y)
-  )
-  list_rda <- list(
-    method = "RDA",
-    n = n,
-    q = q,
-    error = mean(pred_rda$predicted != test_y)
-  )
 
   list_results <- list(
-    list_mlda,
-    list_nlda,
-    list_mdeb,
-    list_pseudo,
-    list_rda
+    list_mlda
   )
   
   do.call(rbind, lapply(list_results, data.frame))		
