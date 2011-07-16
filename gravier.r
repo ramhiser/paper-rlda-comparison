@@ -1,10 +1,11 @@
 library('ProjectTemplate')
 load.project()
+registerDoMC()
 
 seed <- 42
 set.seed(seed)
-B <- 1000
-q_vec <- c(30, 50, 100)
+B <- 100
+q_vec <- c(30, 50, 100, 200, 500)
 
 data('gravier')
 

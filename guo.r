@@ -1,5 +1,6 @@
 library('ProjectTemplate')
 load.project()
+registerDoMC()
 
 seed <- 42
 set.seed(seed)

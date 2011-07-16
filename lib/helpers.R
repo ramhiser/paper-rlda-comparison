@@ -1,11 +1,3 @@
-clean.variable.name <- function(variable.name)
-{
-  variable.name <- gsub('_', '.', variable.name, perl = TRUE)
-  variable.name <- gsub('-', '.', variable.name, perl = TRUE)
-  variable.name <- gsub('\\s+', '.', variable.name, perl = TRUE)
-  return(variable.name)
-}
-
 rlda_data <- function(x, y, q, training_pct = 0.8) {
   N <- nrow(x)
   train <- sample(seq_len(N), training_pct * N)
@@ -29,7 +21,9 @@ rlda_data <- function(x, y, q, training_pct = 0.8) {
   # Find the optimal value of gamma in the RDA model
   # The lambda parameter is fixed to be 1 because
   # we are assuming equal covariance matrices.
-  hold_out <- 5
+	# Using 10-fold cross-validation...
+	folds <- 10
+  hold_out <- floor(length(train_y) / folds)
   grid_size <- 11
   grid <- rbind(1, seq(0, 1, length = grid_size))
   grid_error <- foreach(j = grid, .combine=c) %do% {

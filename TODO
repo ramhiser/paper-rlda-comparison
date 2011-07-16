@@ -1,15 +1,4 @@
-Fix abcissa on ggplot2 graphs
-  The xlabel is colliding with the tick mark labels.
-Update paper to indicate random split of data into train/test.
-  State that our method is similar to J. Ye's paper.
-  Look at 'A survey of cross-validation...' by Arlot in Zotero
-    Refers to this at Monte-Carlo CV and gives some citations
-    Add these citations
-What results changed? Update their summaries
-Update results paragraphs for chosen figures
-Update paper on RDA section 3.2
-  Used grid of 0, 0.1, ..., 1.0
-  Don't use LOO. Use leave 5 out.
-Add note about 'regdiscrim' on CRAN
+Rerun gravier sims to see if errors have gone away now
+Run data sims with q = 500
+Update results paragraphs for microarray data sets
 Get 'regdiscrim' on CRAN
-Cite David Hoyle's (from U. of Manchester) paper regarding the peak effect
