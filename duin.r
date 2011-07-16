@@ -15,7 +15,8 @@ sim_config <- expand.grid(n = n, q = q)
 
 duin_results <- foreach(conf=t(sim_config), .combine=rbind) %:% 
   foreach(icount(B), .combine=rbind) %dopar% {
-    rlda_sim(generate = "generate_duin", n = conf[1], p = p, q = conf[2], test_size = test_size)
+    rlda_sim(generate = "generate_duin", n = conf[1], p = p, q = conf[2],
+		test_size = test_size)
   }
 
 duin_results <- data.frame(duin_results)

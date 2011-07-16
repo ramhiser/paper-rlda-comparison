@@ -7,6 +7,7 @@ set.seed(seed)
 B <- 500
 
 p <- 1000
+block_size <- 25
 test_size <- 500
 
 n <- seq.int(10, 100, by = 10)
