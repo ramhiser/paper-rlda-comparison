@@ -4,14 +4,13 @@ registerDoMC()
 
 seed <- 42
 set.seed(seed)
-B <- 1000
+B <- 500
 
 p <- 1000
-block_size <- 25
 test_size <- 500
 
 n <- seq.int(10, 100, by = 10)
-q <- c(30, 50, 100)
+q <- c(30, 50, 100, 200, 500)
 sim_config <- expand.grid(n = n, q = q)
 
 guo_results <- foreach(conf=t(sim_config), .combine=rbind) %:% 
