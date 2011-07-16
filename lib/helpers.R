@@ -6,18 +6,27 @@ rlda_data <- function(x, y, q, training_pct = 0.8) {
   train_y <- y[train]
   test_y <- y[-train]
 
+	cat("N:", N, "\n")
+	cat("train_x:", dim(train_x), "\n")
+	cat("train_y:", length(train_y), "\n")
+	cat("test_x:", dim(test_x), "\n")
+	cat("test_y:", length(test_y), "\n")
+
   # Perform variable selection with ANOVA
   var_select_out <- var_select_anova(x = train_x, y = train_y, q = q)
   train_x <- var_select_out$data
   test_x <- test_x[, var_select_out$kept]
 
+	cat("var-selected train_x:", dim(train_x), "\n")
+	cat("var-selected test_x:", dim(test_x), "\n")
+	cat("Building classifiers\n")
   # Build classifiers
   mlda_out <- mlda(x = train_x, y = train_y)
   nlda_out <- nlda(x = train_x, y = train_y)
   mdeb_out <- mdeb(x = train_x, y = train_y)
   pseudo_out <- lda_pseudo(x = train_x, y = train_y)
   rda_out <- rda(x = train_x, y = train_y)
-
+	cat("Building classifiers...done!\n")
   # Find the optimal value of gamma in the RDA model
   # The lambda parameter is fixed to be 1 because
   # we are assuming equal covariance matrices.
@@ -26,20 +35,26 @@ rlda_data <- function(x, y, q, training_pct = 0.8) {
   hold_out <- floor(length(train_y) / folds)
   grid_size <- 11
   grid <- rbind(1, seq(0, 1, length = grid_size))
+	cat("Making RLDA grid\n")
   grid_error <- foreach(j = grid, .combine=c) %do% {
     rda_cv(x = train_x, y = train_y, lambda = j[1], gamma = j[2], k = hold_out)$error
   }
+	cat("Making RLDA grid...done!\n")
   grid  <- cbind.data.frame(t(grid), grid_error)
   names(grid) <- c("lambda", "gamma", "error")
+	cat("grid:\n")
+	print(grid)
   friedman_grid <- rda_friedman(training_error = grid)
-
+	cat("friedman_grid\n")
+	print(friedman_grid)
   # Make predictions
+	cat("making predictions\n")
   pred_mlda <- predict_mlda(mlda_out, test_x)
   pred_nlda <- predict_nlda(nlda_out, test_x)
   pred_mdeb <- predict_mdeb(mdeb_out, test_x)
   pred_pseudo <- predict_lda_pseudo(pseudo_out, test_x)
   pred_rda <- predict_rda(rda_out, test_x, friedman_grid$lambda, friedman_grid$gamma)
-
+	cat("making predictions...done!\n")
   list_mlda <- list(
     method = "MLDA",
     q = q,
