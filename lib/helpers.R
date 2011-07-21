@@ -1,4 +1,6 @@
 rlda_data <- function(x, y, q, training_pct = 0.8) {
+	#seed <<- .Random.seed
+	#print(seed)
   N <- nrow(x)
   train <- sample(seq_len(N), training_pct * N)
   train_x <- x[train, ]
@@ -11,6 +13,10 @@ rlda_data <- function(x, y, q, training_pct = 0.8) {
 	cat("train_y:", length(train_y), "\n")
 	cat("test_x:", dim(test_x), "\n")
 	cat("test_y:", length(test_y), "\n")
+	
+	cat("test indices:\n")
+	test_idx <- which(!(seq_along(y) %in% train))
+	print(test_idx)
 
   # Perform variable selection with ANOVA
   var_select_out <- var_select_anova(x = train_x, y = train_y, q = q)
@@ -19,14 +25,7 @@ rlda_data <- function(x, y, q, training_pct = 0.8) {
 
 	cat("var-selected train_x:", dim(train_x), "\n")
 	cat("var-selected test_x:", dim(test_x), "\n")
-	cat("Building classifiers\n")
-  # Build classifiers
-  mlda_out <- mlda(x = train_x, y = train_y)
-  nlda_out <- nlda(x = train_x, y = train_y)
-  mdeb_out <- mdeb(x = train_x, y = train_y)
-  pseudo_out <- lda_pseudo(x = train_x, y = train_y)
-  rda_out <- rda(x = train_x, y = train_y)
-	cat("Building classifiers...done!\n")
+	
   # Find the optimal value of gamma in the RDA model
   # The lambda parameter is fixed to be 1 because
   # we are assuming equal covariance matrices.
@@ -47,6 +46,16 @@ rlda_data <- function(x, y, q, training_pct = 0.8) {
   friedman_grid <- rda_friedman(training_error = grid)
 	cat("friedman_grid\n")
 	print(friedman_grid)
+	
+	cat("Building classifiers\n")
+  # Build classifiers
+  mlda_out <- mlda(x = train_x, y = train_y)
+  nlda_out <- nlda(x = train_x, y = train_y)
+  mdeb_out <- mdeb(x = train_x, y = train_y)
+  pseudo_out <- lda_pseudo(x = train_x, y = train_y)
+  rda_out <- rda(x = train_x, y = train_y)
+	cat("Building classifiers...done!\n")
+	
   # Make predictions
 	cat("making predictions\n")
   pred_mlda <- predict_mlda(mlda_out, test_x)

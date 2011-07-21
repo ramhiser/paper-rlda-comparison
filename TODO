@@ -1,3 +1,4 @@
+Add other classifiers back to generated_data_sims
 Rerun gravier sims to see if errors have gone away now
 Run data sims with q = 500
 Update results paragraphs for microarray data sets
