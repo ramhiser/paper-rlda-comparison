@@ -9,8 +9,8 @@ q_vec <- c(30, 50, 100, 200, 500)
 
 data('alon')
 
-alon_results <- foreach(q = q_vec, .combine=rbind, .verbose = TRUE) %:%
-  foreach(icount(B), .combine=rbind, .verbose=TRUE) %do% {
+alon_results <- foreach(q = q_vec, .combine=rbind) %:%
+  foreach(icount(B), .combine=rbind) %dopar% {
     rlda_data(x = alon$x, y = alon$y, q = q)
   }
 alon_results <- data.frame(alon_results)

@@ -9,8 +9,8 @@ q_vec <- c(30, 50, 100, 200, 500)
 
 data('gravier')
 
-gravier_results <- foreach(q = q_vec, .combine=rbind, .verbose = TRUE) %:%
-  foreach(icount(B), .combine=rbind, .verbose = TRUE) %do% {
+gravier_results <- foreach(q = q_vec, .combine=rbind) %:%
+  foreach(icount(B), .combine=rbind) %dopar% {
     rlda_data(x = gravier$x, y = gravier$y, q = q)
   }
 gravier_results <- data.frame(gravier_results)
