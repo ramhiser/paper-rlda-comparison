@@ -4,7 +4,7 @@ registerDoMC()
 
 seed <- 42
 set.seed(seed)
-B <- 500
+B <- 250
 
 p <- 1000
 block_size <- 25
